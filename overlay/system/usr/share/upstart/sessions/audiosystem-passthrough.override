@@ -1,0 +1,1 @@
+exec /usr/lib/audiosystem-passthrough/audiosystem-passthrough -v -a unix:path=/run/user/32011/pulse/dbus-socket -t af

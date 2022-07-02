@@ -1,0 +1,22 @@
+# Misuse this overlay for some Android properties
+on boot
+    setprop debug.stagefright.ccodec 0
+    setprop ro.config.vc_call_vol_steps 18
+    setprop ubuntu.unity8.interactive_blur true
+
+service time_daemon vendor.time_daemon_HYBRIS_DISABLED
+    disabled
+    oneshot
+    override
+
+service vendor.imsqmidaemon vendor.imsqmidaemon_HYBRIS_DISABLED
+    disabled
+    oneshot
+    override
+
+service vendor.imsrcsservice vendor.imsrcsservice_HYBRIS_DISABLED
+    disabled
+    oneshot
+    override
+
+
