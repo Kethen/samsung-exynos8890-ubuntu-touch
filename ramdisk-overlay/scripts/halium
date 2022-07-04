@@ -557,6 +557,9 @@ mountroot() {
 	sed -i 's/halium_arm64/herolte/g' /halium-system/system/system_ext/build.prop
 	sed -i 's/halium_arm64/herolte/g' /halium-system/system/product/build.prop
 	umount /halium-system
+	ln -s /android/efs /halium-system/efs
+	ln -s /android/cpefs /halium-system/cpefs
+	ln -s /android/vendor/etc/wifi /halium-system/etc/wifi
 
 	# Identify image mode: either "rootfs" or "system"
 	mkdir -p /android-rootfs
@@ -667,8 +670,18 @@ mountroot() {
 		#mount_android_partitions "${rootmnt}/var/lib/lxc/android/rootfs/fstab*" ${rootmnt}/android ${rootmnt}/userdata
 		mount_android_partitions "${rootmnt}/fstab*" ${rootmnt}/android ${rootmnt}/userdata
 
+		# enable audio hal
+		mount -o bind ${rootmnt}/android_overlay/system/etc/init/init.disabled.rc ${rootmnt}/var/lib/lxc/android/rootfs/system/etc/init/init.disabled.rc
+
+		# bind mount efs and cpefs for samsung
+		mount -o bind ${rootmnt}/android/efs ${rootmnt}/var/lib/lxc/android/rootfs/efs
+		mount -o bind ${rootmnt}/android/cpefs ${rootmnt}/var/lib/lxc/android/rootfs/cpefs
+
 		# make fstab empty since mounting is done here
 		mount -o bind /dev/null ${rootmnt}/android/vendor/etc/fstab.samsungexynos8890
+
+		# disable wifi hal
+		mount -o bind /dev/null ${rootmnt}/android/vendor/etc/init/android.hardware.wifi@1.0-service.rc
 
 		# overlay vndservicemanager
 		mount -o bind ${rootmnt}/vendor_overlay/bin/vndservicemanager ${rootmnt}/android/vendor/bin/vndservicemanager
