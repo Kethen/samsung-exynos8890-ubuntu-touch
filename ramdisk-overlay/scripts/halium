@@ -689,6 +689,9 @@ mountroot() {
 		# overlay vndservicemanager
 		mount -o bind ${rootmnt}/vendor_overlay/bin/vndservicemanager ${rootmnt}/android/vendor/bin/vndservicemanager
 
+		# compat audio hal
+		mount -o bind ${rootmnt}/android/system/lib64/hw/audio.hidl_compat.default.so ${rootmnt}/android/vendor/lib64/hw/audio.primary.default.so
+
 		# system is a special case
 		tell_kmsg "moving Android system to /android/system"
 		mount --move /android-system ${rootmnt}/android/system
