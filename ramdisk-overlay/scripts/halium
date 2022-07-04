@@ -673,6 +673,9 @@ mountroot() {
 		# enable audio hal
 		mount -o bind ${rootmnt}/android_overlay/system/etc/init/init.disabled.rc ${rootmnt}/var/lib/lxc/android/rootfs/system/etc/init/init.disabled.rc
 
+		# manually trigger nonencrypted
+		mount -o bind ${rootmnt}/android_overlay/system/etc/init/hw/init.rc ${rootmnt}/var/lib/lxc/android/rootfs/system/etc/init/hw/init.rc
+
 		# bind mount efs and cpefs for samsung
 		mount -o bind ${rootmnt}/android/efs ${rootmnt}/var/lib/lxc/android/rootfs/efs
 		mount -o bind ${rootmnt}/android/cpefs ${rootmnt}/var/lib/lxc/android/rootfs/cpefs
