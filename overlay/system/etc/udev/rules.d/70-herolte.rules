@@ -143,3 +143,6 @@ ACTION=="add", KERNEL=="qbtspi", OWNER="system", GROUP="system", MODE="0660"
 ACTION=="add", KERNEL=="ttyGS*", OWNER="system", GROUP="system", MODE="0660"
 ACTION=="add", KERNEL=="block/platform/155a0000.ufs/by-name/PERSISTENT", OWNER="system", GROUP="system", MODE="0660"
 ACTION=="add", KERNEL=="block/platform/155a0000.ufs/by-name/STEADY", OWNER="system", GROUP="system", MODE="0660"
+
+# fix hwbinder
+ACTION=="add", KERNEL=="hwbinder", OWNER="root", GROUP="root", MODE="0666"
