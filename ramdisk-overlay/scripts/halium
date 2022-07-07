@@ -669,6 +669,8 @@ mountroot() {
 		# Mount all the Android partitions
 		#mount_android_partitions "${rootmnt}/var/lib/lxc/android/rootfs/fstab*" ${rootmnt}/android ${rootmnt}/userdata
 		mount_android_partitions "${rootmnt}/fstab*" ${rootmnt}/android ${rootmnt}/userdata
+		# mount prebaked vendor
+		mount -o loop,ro "${rootmnt}/vendor.img" ${rootmnt}/android/vendor
 
 		# enable audio hal
 		mount -o bind ${rootmnt}/android_overlay/system/etc/init/init.disabled.rc ${rootmnt}/var/lib/lxc/android/rootfs/system/etc/init/init.disabled.rc
@@ -688,6 +690,9 @@ mountroot() {
 
 		# overlay vndservicemanager
 		mount -o bind ${rootmnt}/vendor_overlay/bin/vndservicemanager ${rootmnt}/android/vendor/bin/vndservicemanager
+
+		# disable secure codecs, might be broken due to mobicore issues
+		mount -o bind ${rootmnt}/vendor_overlay/etc/media_codecs.xml ${rootmnt}/android/vendor/etc/media_codecs.xml
 
 		# compat audio hal
 		mount -o bind ${rootmnt}/android/system/lib64/hw/audio.hidl_compat.default.so ${rootmnt}/android/vendor/lib64/hw/audio.primary.default.so
