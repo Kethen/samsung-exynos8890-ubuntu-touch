@@ -669,6 +669,7 @@ mountroot() {
 		# Mount all the Android partitions
 		#mount_android_partitions "${rootmnt}/var/lib/lxc/android/rootfs/fstab*" ${rootmnt}/android ${rootmnt}/userdata
 		mount_android_partitions "${rootmnt}/fstab*" ${rootmnt}/android ${rootmnt}/userdata
+
 		# mount prebaked vendor
 		mount -o loop,ro "${rootmnt}/vendor.img" ${rootmnt}/android/vendor
 
@@ -681,6 +682,9 @@ mountroot() {
 		# bind mount efs and cpefs for samsung
 		mount -o bind ${rootmnt}/android/efs ${rootmnt}/var/lib/lxc/android/rootfs/efs
 		mount -o bind ${rootmnt}/android/cpefs ${rootmnt}/var/lib/lxc/android/rootfs/cpefs
+
+		# do not override keymaster and cause log spam
+		mount -o bind ${rootmnt}/android_overlay/system/etc/vintf/manifest.xml ${rootmnt}/var/lib/lxc/android/rootfs/system/etc/vintf/manifest.xml
 
 		# make fstab empty since mounting is done here
 		mount -o bind /dev/null ${rootmnt}/android/vendor/etc/fstab.samsungexynos8890
