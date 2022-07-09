@@ -1,0 +1,21 @@
+# start lxc-android-config after mount-android finished
+start on (cgmanager-ready
+   and started cgroup-lite
+   and mounted-android)
+
+pre-start script
+    if [ ! -d /sys/fs/cgroup/systemd ]; then
+        mkdir -p /sys/fs/cgroup/systemd
+        mount -t cgroup cgroup /sys/fs/cgroup/systemd -o name=systemd
+    fi
+    # breaks LXC if mounted
+    if [ -d /sys/fs/cgroup/schedtune ]; then
+        umount -l /sys/fs/cgroup/schedtune || true
+    fi
+    # mount binderfs if needed
+    if [ ! -e /dev/binder ]; then
+        mkdir -p /dev/binderfs
+        mount -t binder binder /dev/binderfs -o stats=global
+        ln -s /dev/binderfs/*binder /dev
+    fi
+end script
