@@ -60,6 +60,7 @@ identify_boot_mode() {
 	# On Android 8+ devices the 'android' boot mode is broken and should be avoided.
 	# This behavior can be overridden with the cmdline flag 'halium_no_avoid_android_mode'
 	# List of API levels and referred Android versions: https://source.android.com/setup/start/build-numbers
+	IS_CHARGER_MODE=false
 	if ! grep -wq halium_no_avoid_android_mode /proc/cmdline; then
 		api_level=$(sed -n 's/^ro.build.version.sdk=//p' /android-system/build.prop) # e.g. 26 for Android 8.0
 		[ -z "$api_level" ] && api_level=0
@@ -67,6 +68,7 @@ identify_boot_mode() {
 		if [ "$BOOT_MODE" = "android" ] && [ $api_level -ge 26 ]; then
 			tell_kmsg "Android 8+ device detected! Charging is to be handled by rootfs, continue boot normally"
 			BOOT_MODE='halium'
+			IS_CHARGER_MODE=true
 		fi
 	fi
 
@@ -556,6 +558,9 @@ mountroot() {
 	sed -i 's/halium_arm64/herolte/g' /halium-system/system/build.prop
 	sed -i 's/halium_arm64/herolte/g' /halium-system/system/system_ext/build.prop
 	sed -i 's/halium_arm64/herolte/g' /halium-system/system/product/build.prop
+	# charger mode init
+	mkdir /halium-system/sbin
+	ln -s /system/bin/init /halium-system/sbin/init
 	umount /halium-system
 	ln -s /android/efs /halium-system/efs
 	ln -s /android/cpefs /halium-system/cpefs
@@ -742,6 +747,42 @@ mountroot() {
 			fi
 		done
 
+		# charger mode
+		if $IS_CHARGER_MODE
+		then
+			# don't start ubuntu, just run android
+			tell_kmsg "mounting ${rootmnt}/android as ${rootmnt} for charger mode"
+			mount --move ${rootmnt}/android ${rootmnt}
+			#tell_kmsg "mounting ${rootmnt}/android/system/bin/init over ${rootmnt}/sbin/upstart for charger mode"
+			#mount -o bind ${rootmnt}/android/system/bin/init ${rootmnt}/sbin/upstart
+			tell_kmsg "mounting tmpfs on /apex for charger mode"
+			mount -t tmpfs tmpfs ${rootmnt}/apex
+			tell_kmsg "mounting tmpfs on /linkerconfig for charger mode"
+			mount -t tmpfs tmpfs ${rootmnt}/linkerconfig
+			tell_kmsg "mounting tmpfs on /mnt for charger mode"
+			mount -t tmpfs tmpfs ${rootmnt}/mnt
+			tell_kmsg "mounting tmpfs on /dev for charger mode"
+			mount -t tmpfs tmpfs ${rootmnt}/dev
+			mkdir ${rootmnt}/dev/__properties__
+			mkdir ${rootmnt}/dev/socket
+			tell_kmsg "providing /dev with binder devices"
+			touch ${rootmnt}/dev/binder
+			mount -o bind /dev/binder ${rootmnt}/dev/binder
+			chmod 666 ${rootmnt}/dev/binder
+			touch ${rootmnt}/dev/hwbinder
+			mount -o bind /dev/hwbinder ${rootmnt}/dev/hwbinder
+			chmod 666 ${rootmnt}/dev/hwbinder
+			touch ${rootmnt}/dev/vndbinder
+			mount -o bind /dev/vndbinder ${rootmnt}/dev/vndbinder
+			chmod 666 ${rootmnt}/dev/vndbinder
+			tell_kmsg "mounting sysfs on /sys for charger mode"
+			mount -t sysfs sysfs ${rootmnt}/sys
+			tell_kmsg "mounting proc on /proc for charger mode"
+			mount -t proc proc ${rootmnt}/proc
+			# charger mode somehow can't load cmdline for bootmode
+			#mount -t tmpfs tmpfs ${rootmnt}/factory
+			#echo "ro.bootmode=charger" > ${rootmnt}/factory/factory.prop
+		fi
 	else
 		# Possibly a re-partitioned device
 		halium_panic "Couldn't find a system partition."
