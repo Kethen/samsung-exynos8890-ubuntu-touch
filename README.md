@@ -5,7 +5,6 @@
 - sdcard support is missing
 - fingetprint sensor cannot enroll, something about trustzone/mobicore not working
 - NetworkManager sometimes starts before mac address is loaded from /efs, deciding on a fix
-- turning on and off bluetooth might require a bluebinder restart, perhaps bluetooth stack back port is desired to use bluez directly
 
 ### TODO
 - add hero2lte port
