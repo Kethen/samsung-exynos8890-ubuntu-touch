@@ -39,7 +39,7 @@ load-module module-switch-on-connect skip_abstract=yes
 
 ### Automatically load the Pulseaudio Droid
 .ifexists module-droid-card-30.so
-load-module module-droid-card-30 rate=48000 voice_virtual_stream=true
+load-module module-droid-card-30 rate=48000 voice_virtual_stream=true halium_10_audio_hal=true
 .endif
 
 .ifexists module-droid-hidl-30.so
