@@ -697,6 +697,9 @@ mountroot() {
 		# disable wifi hal
 		mount -o bind /dev/null ${rootmnt}/android/vendor/etc/init/android.hardware.wifi@1.0-service.rc
 
+		# disable bluetooth hal
+		mount -o bind /dev/null ${rootmnt}/android/vendor/etc/init/android.hardware.bluetooth@1.0-service.rc
+
 		# overlay vndservicemanager
 		mount -o bind ${rootmnt}/vendor_overlay/bin/vndservicemanager ${rootmnt}/android/vendor/bin/vndservicemanager
 
