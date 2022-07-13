@@ -706,6 +706,9 @@ mountroot() {
 		# overlay vndservicemanager
 		mount -o bind ${rootmnt}/vendor_overlay/bin/vndservicemanager ${rootmnt}/android/vendor/bin/vndservicemanager
 
+		# overlay fingerprint hal init
+		mount -o bind ${rootmnt}/vendor_overlay/etc/init/android.hardware.biometrics.fingerprint@2.1-service.samsung.rc ${rootmnt}/android/vendor/etc/init/android.hardware.biometrics.fingerprint@2.1-service.samsung.rc
+
 		# disable secure codecs, might be broken due to mobicore issues
 		mount -o bind ${rootmnt}/vendor_overlay/etc/media_codecs.xml ${rootmnt}/android/vendor/etc/media_codecs.xml
 
