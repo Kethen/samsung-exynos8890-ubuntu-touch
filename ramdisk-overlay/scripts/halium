@@ -694,8 +694,11 @@ mountroot() {
 		# make fstab empty since mounting is done here
 		mount -o bind /dev/null ${rootmnt}/android/vendor/etc/fstab.samsungexynos8890
 
-		# disable wifi hal
+		# disable wifi hal, wpa_supplicant and hostapd
 		mount -o bind /dev/null ${rootmnt}/android/vendor/etc/init/android.hardware.wifi@1.0-service.rc
+		mount -o bind /dev/null ${rootmnt}/android/vendor/etc/init/android.hardware.wifi.supplicant-service.rc
+		mount -o bind /dev/null ${rootmnt}/android/vendor/etc/init/hostapd.android.rc
+
 
 		# disable bluetooth hal
 		mount -o bind /dev/null ${rootmnt}/android/vendor/etc/init/android.hardware.bluetooth@1.0-service.rc

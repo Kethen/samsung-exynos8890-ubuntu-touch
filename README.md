@@ -7,7 +7,6 @@
 - swlan0 is disabled to not confuse NetworkManager, but that means no wifi tethering while wifi is connected, wlan0 is used to do both
 - sdcard support is missing
 - fingetprint sensor cannot enroll, something about trustzone/mobicore not working
-- NetworkManager sometimes starts before mac address is loaded from /efs, deciding on a fix
 
 ### TODO
 - add hero2lte port
