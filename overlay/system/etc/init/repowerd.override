@@ -1,0 +1,6 @@
+start on started dbus and android and started sensorfw
+
+pre-start script
+	# wait a bit for sensorfw to be ready
+	sleep 5
+end script
