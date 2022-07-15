@@ -549,22 +549,33 @@ mountroot() {
 		mount -o bind /tmpmnt/halium-rootfs /halium-system
 	fi
 
-	# create samsung mountpoints in android image, and name the device
-	mount -o loop,rw /halium-system/var/lib/lxc/android/android-rootfs.img /halium-system
-	mkdir /halium-system/efs
-	mkdir /halium-system/cpefs
-	#sed -i 's/ro.product.system.device=halium_arm64/ro.product.system.device=herolte/' /halium-system/system/build.prop
-	#sed -i 's/ro.build.product=halium_arm64/ro.build.product=herolte/' /halium-system/system/build.prop
-	sed -i 's/halium_arm64/herolte/g' /halium-system/system/build.prop
-	sed -i 's/halium_arm64/herolte/g' /halium-system/system/system_ext/build.prop
-	sed -i 's/halium_arm64/herolte/g' /halium-system/system/product/build.prop
-	# charger mode init
-	mkdir /halium-system/sbin
-	ln -s /system/bin/init /halium-system/sbin/init
-	umount /halium-system
-	ln -s /android/efs /halium-system/efs
-	ln -s /android/cpefs /halium-system/cpefs
-	ln -s /android/vendor/etc/wifi /halium-system/etc/wifi
+	# first boot modifications for herolte
+	if ! [ -e /halium-system/herolte_initialized ]
+	then
+		# create samsung mountpoints in android image, and name the device
+		mount -o loop,rw /halium-system/var/lib/lxc/android/android-rootfs.img /halium-system
+		mkdir /halium-system/efs
+		mkdir /halium-system/cpefs
+		sed -i 's/halium_arm64/herolte/g' /halium-system/system/build.prop
+		sed -i 's/halium_arm64/herolte/g' /halium-system/system/system_ext/build.prop
+		sed -i 's/halium_arm64/herolte/g' /halium-system/system/product/build.prop
+
+		# charger mode init
+		mkdir /halium-system/sbin
+		ln -s /system/bin/init /halium-system/sbin/init
+		umount /halium-system
+		ln -s /android/efs /halium-system/efs
+		ln -s /android/cpefs /halium-system/cpefs
+		ln -s /android/vendor/etc/wifi /halium-system/etc/wifi
+
+		# refresh ldconfig for temporary overlays
+		LD_LIBRARY_PATH=/lib:/usr/lib chroot /halium-system /sbin/ldconfig
+
+		# permissions for init overlays
+		chmod 644 /halium-system/vendor_overlay/etc/init/android.hardware.biometrics.fingerprint@2.1-service.samsung.rc
+
+		touch /halium-system/herolte_initialized
+	fi
 
 	# Identify image mode: either "rootfs" or "system"
 	mkdir -p /android-rootfs
