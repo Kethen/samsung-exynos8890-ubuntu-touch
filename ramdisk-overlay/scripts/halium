@@ -571,9 +571,6 @@ mountroot() {
 		# refresh ldconfig for temporary overlays
 		LD_LIBRARY_PATH=/lib:/usr/lib chroot /halium-system /sbin/ldconfig
 
-		# permissions for init overlays
-		chmod 644 /halium-system/vendor_overlay/etc/init/android.hardware.biometrics.fingerprint@2.1-service.samsung.rc
-
 		touch /halium-system/herolte_initialized
 	fi
 
@@ -689,42 +686,11 @@ mountroot() {
 		# mount prebaked vendor
 		mount -o loop,ro "${rootmnt}/vendor.img" ${rootmnt}/android/vendor
 
-		# enable audio hal
-		mount -o bind ${rootmnt}/android_overlay/system/etc/init/init.disabled.rc ${rootmnt}/var/lib/lxc/android/rootfs/system/etc/init/init.disabled.rc
+		# overlay vndservicemanager with a selinux disabled version
+		mount -o bind ${rootmnt}/opt/halium-overlay/vendor/bin/vndservicemanager ${rootmnt}/android/vendor/bin/vndservicemanager
 
-		# manually trigger nonencrypted
-		mount -o bind ${rootmnt}/android_overlay/system/etc/init/hw/init.rc ${rootmnt}/var/lib/lxc/android/rootfs/system/etc/init/hw/init.rc
-
-		# bind mount efs and cpefs for samsung
-		mount -o bind ${rootmnt}/android/efs ${rootmnt}/var/lib/lxc/android/rootfs/efs
-		mount -o bind ${rootmnt}/android/cpefs ${rootmnt}/var/lib/lxc/android/rootfs/cpefs
-
-		# do not override keymaster and cause log spam
-		mount -o bind ${rootmnt}/android_overlay/system/etc/vintf/manifest.xml ${rootmnt}/var/lib/lxc/android/rootfs/system/etc/vintf/manifest.xml
-
-		# make fstab empty since mounting is done here
+		# make fstab empty since mounting is done for lpm
 		mount -o bind /dev/null ${rootmnt}/android/vendor/etc/fstab.samsungexynos8890
-
-		# disable wifi hal, wpa_supplicant and hostapd
-		mount -o bind /dev/null ${rootmnt}/android/vendor/etc/init/android.hardware.wifi@1.0-service.rc
-		mount -o bind /dev/null ${rootmnt}/android/vendor/etc/init/android.hardware.wifi.supplicant-service.rc
-		mount -o bind /dev/null ${rootmnt}/android/vendor/etc/init/hostapd.android.rc
-
-
-		# disable bluetooth hal
-		mount -o bind /dev/null ${rootmnt}/android/vendor/etc/init/android.hardware.bluetooth@1.0-service.rc
-
-		# overlay vndservicemanager
-		mount -o bind ${rootmnt}/vendor_overlay/bin/vndservicemanager ${rootmnt}/android/vendor/bin/vndservicemanager
-
-		# overlay fingerprint hal init
-		mount -o bind ${rootmnt}/vendor_overlay/etc/init/android.hardware.biometrics.fingerprint@2.1-service.samsung.rc ${rootmnt}/android/vendor/etc/init/android.hardware.biometrics.fingerprint@2.1-service.samsung.rc
-
-		# disable secure codecs, might be broken due to mobicore issues
-		mount -o bind ${rootmnt}/vendor_overlay/etc/media_codecs.xml ${rootmnt}/android/vendor/etc/media_codecs.xml
-
-		# compat audio hal
-		mount -o bind ${rootmnt}/android/system/lib64/hw/audio.hidl_compat.default.so ${rootmnt}/android/vendor/lib64/hw/audio.primary.default.so
 
 		# system is a special case
 		tell_kmsg "moving Android system to /android/system"
@@ -799,9 +765,6 @@ mountroot() {
 			mount -t sysfs sysfs ${rootmnt}/sys
 			tell_kmsg "mounting proc on /proc for charger mode"
 			mount -t proc proc ${rootmnt}/proc
-			# charger mode somehow can't load cmdline for bootmode
-			#mount -t tmpfs tmpfs ${rootmnt}/factory
-			#echo "ro.bootmode=charger" > ${rootmnt}/factory/factory.prop
 		fi
 	else
 		# Possibly a re-partitioned device
