@@ -1,1 +1,0 @@
-ACTION=="add|change", KERNEL=="mmcblk0*", ENV{UDISKS_SYSTEM}="0"
