@@ -4,7 +4,7 @@
 	- hciattach can't set a macaddress at all with this chip, so the macaddress from /efs cannot be applied, while the chip has a built-in mac address
 - swlan0 is disabled to not confuse NetworkManager, but that means no wifi tethering while wifi is connected, wlan0 is used to do both
 - fingetprint sensor should work, but only tested on /dev/vfsspi(viper), not /dev/esfp0(egis), I don't have a s7 with egis fingerprint sensor to test with
-- camcorder audio desync, likely an issue that should be foxed on ubport itself however, https://gitlab.com/ubports/development/core/qtubuntu-camera/-/issues/22
+- camcorder audio desync, likely an issue that should be fixed on ubport itself however, https://gitlab.com/ubports/development/core/qtubuntu-camera/-/issues/22
 
 ### Pending merge requests included
 - Color/Pixel format for hardware video decoding  https://github.com/ubports/gst-plugins-bad-packaging/pull/4
@@ -13,5 +13,4 @@
 - halium-generic-adaptation-build-tools https://gitlab.com/ubports/porting/community-ports/halium-generic-adaptation-build-tools/-/merge_requests/2
 
 ### TODO
-- look into ubports recovery 
-- add hero2lte port
+- building separated kernels for recovery and boot to enable selinux for recovery and apparmor for boot
