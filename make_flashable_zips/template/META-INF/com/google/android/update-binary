@@ -17,7 +17,7 @@ fi
 
 
 ui_print "flashing boot image"
-unzip -p $ZIP boot.img | dd of=/dev/block/platform/155a0000.ufs/by-name/BOOT bs=8M 1>dd_out 2>dd_err
+unzip -p "$ZIP" boot.img | dd of=/dev/block/platform/155a0000.ufs/by-name/BOOT bs=8M 1>dd_out 2>dd_err
 if [ "$?" != "0" ]
 then
 	ui_print "failed flashing boot image"
@@ -29,7 +29,7 @@ then
 fi
 
 ui_print "flashing system image"
-unzip -p $ZIP system.img | dd of=/dev/block/platform/155a0000.ufs/by-name/SYSTEM bs=8M 1>dd_out 2>dd_err
+unzip -p "$ZIP" system.img | dd of=/dev/block/platform/155a0000.ufs/by-name/SYSTEM bs=8M 1>dd_out 2>dd_err
 if [ "$?" != "0" ]
 then
 	ui_print "failed flashing system image"
