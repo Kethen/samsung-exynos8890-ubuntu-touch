@@ -551,15 +551,16 @@ mountroot() {
 
 	# first boot modifications for herolte
 	MODEL=$(cat /model)
-	if ! [ -e /halium-system/herolte_initialized ]
+	# not sure how to detect ota updates
+	if true
 	then
 		# create samsung mountpoints in android image, and name the device
 		mount -o loop,rw /halium-system/var/lib/lxc/android/android-rootfs.img /halium-system
 		mkdir /halium-system/efs
 		mkdir /halium-system/cpefs
-		sed -i 's/halium_arm64/${MODEL}/g' /halium-system/system/build.prop
-		sed -i 's/halium_arm64/${MODEL}/g' /halium-system/system/system_ext/build.prop
-		sed -i 's/halium_arm64/${MODEL}/g' /halium-system/system/product/build.prop
+		sed -i "s/halium_arm64/${MODEL}/g" /halium-system/system/build.prop
+		sed -i "s/halium_arm64/${MODEL}/g" /halium-system/system/system_ext/build.prop
+		sed -i "s/halium_arm64/${MODEL}/g" /halium-system/system/product/build.prop
 
 		# charger mode init
 		mkdir /halium-system/sbin
@@ -571,8 +572,6 @@ mountroot() {
 
 		# refresh ldconfig for temporary overlays
 		LD_LIBRARY_PATH=/lib:/usr/lib chroot /halium-system /sbin/ldconfig
-
-		touch /halium-system/herolte_initialized
 	fi
 
 	# Identify image mode: either "rootfs" or "system"

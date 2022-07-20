@@ -13,4 +13,3 @@
 - halium-generic-adaptation-build-tools https://gitlab.com/ubports/porting/community-ports/halium-generic-adaptation-build-tools/-/merge_requests/2
 
 ### TODO
-- building separated kernels for recovery and boot to enable selinux for recovery and apparmor for boot

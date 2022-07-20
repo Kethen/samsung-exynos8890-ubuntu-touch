@@ -1,0 +1,2 @@
+start on startup
+#exec /usr/sbin/sshd -D -o PasswordAuthentication=yes -o PermitEmptyPasswords=yes

@@ -5,6 +5,7 @@ deviceinfo_arch="aarch64"
 deviceinfo_kernel_source="https://github.com/Kethen/android_kernel_samsung_universal8890.git"
 deviceinfo_kernel_source_branch="halium-11.0-4.2-bt"
 deviceinfo_kernel_defconfig="exynos8890-herolte_defconfig"
+deviceinfo_kernel_defconfig_recovery="exynos8890-herolte_recovery_defconfig"
 # put cmdline in defconfig instead, does not work on samsung
 deviceinfo_kernel_cmdline="buildvariant=userdebug"
 deviceinfo_kernel_clang_compile="false"
