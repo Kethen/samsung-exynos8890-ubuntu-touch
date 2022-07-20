@@ -1,0 +1,46 @@
+#!/sbin/sh
+# Initial functions
+interface="${1}"
+updater_fd="${2}"
+ZIP="$3"
+ui_print() {
+    echo -en "ui_print ${1}\n" > /proc/self/fd/"${updater_fd}"
+    echo -en "ui_print\n" > /proc/self/fd/"${updater_fd}"
+}
+
+DEVICE_MODEL=$(cat /default.prop | grep 'ro.vendor.product.device=' | sed -E 's/ro.vendor.product.device=(.+)/\1/')
+if [ "$MODEL" != "$DEVICE_MODEL" ]
+then
+	ui_print "this zip is for $MODEL, refuse to flash on $DEVICE_MODEL"
+	exit 1
+fi
+
+
+ui_print "flashing boot image"
+unzip -p $ZIP boot.img | dd of=/dev/block/platform/155a0000.ufs/by-name/BOOT bs=8M 1>dd_out 2>dd_err
+if [ "$?" != "0" ]
+then
+	ui_print "failed flashing boot image"
+	cat dd_out dd_err | while read -r LINE
+	do
+		ui_print "$LINE"
+	done
+	exit 1
+fi
+
+ui_print "flashing system image"
+unzip -p $ZIP system.img | dd of=/dev/block/platform/155a0000.ufs/by-name/SYSTEM bs=8M 1>dd_out 2>dd_err
+if [ "$?" != "0" ]
+then
+	ui_print "failed flashing system image"
+	cat dd_out dd_err | while read -r LINE
+	do
+		ui_print "$LINE"
+	done
+	exit 1
+fi
+
+ui_print "finishing up"
+sync
+
+ui_print "done"

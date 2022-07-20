@@ -1,3 +1,19 @@
+### Credits
+https://github.com/8890q/ for LineageOS 18.1 device tree, kernel, hardware support, blobs
+
+https://forum.xda-developers.com/t/treble-aosp-g930x-g935x-project_pizza-trebleport-v2-0.3956076/ for libsensor blobs
+
+https://github.com/NotKit for giving me very helpful hints about ubports/halium specifics
+
+these awesome people gave me useful pointers for https://github.com/Kethen/herolte_treble to come to fruition, and is used in this port:
+
+https://github.com/ivanmeler
+
+https://github.com/ExpressLuke
+
+https://github.com/00p513-dev
+
+
 ### Currently Known Issues
 - while bluebinder + 3.18 bt stack has issues, bluetooth seems to work best with the 4.2 bluetooh stack, however:
 	- full power off has to be disabled for it to play well with the uart hci, hopefully the wifi chip itself takes the power down command well
