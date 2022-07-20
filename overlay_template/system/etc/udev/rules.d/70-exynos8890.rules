@@ -147,3 +147,8 @@ ACTION=="add", KERNEL=="block/platform/155a0000.ufs/by-name/STEADY", OWNER="syst
 # fix binders
 ACTION=="add", KERNEL=="hwbinder", OWNER="root", GROUP="root", MODE="0666"
 ACTION=="add", KERNEL=="vndbinder", OWNER="root", GROUP="root", MODE="0666"
+
+# anbox/waydroid binders
+ACTION=="add", KERNEL=="anbox-binder", OWNER="root", GROUP="root", MODE="0666"
+ACTION=="add", KERNEL=="anbox-hwbinder", OWNER="root", GROUP="root", MODE="0666"
+ACTION=="add", KERNEL=="anbox-vndbinder", OWNER="root", GROUP="root", MODE="0666"
