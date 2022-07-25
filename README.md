@@ -28,4 +28,7 @@ https://github.com/00p513-dev
 - Sensorfw https://gitlab.com/ubports/development/core/packaging/sensorfw/-/merge_requests/8
 - halium-generic-adaptation-build-tools https://gitlab.com/ubports/porting/community-ports/halium-generic-adaptation-build-tools/-/merge_requests/2
 
+### Changes made to recovery
+- https://github.com/Kethen/halium_bootable_recovery/tree/halium-11.0-s7
+
 ### TODO
