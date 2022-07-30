@@ -1,0 +1,5 @@
+pre-start script
+	mac_address=$(cat /efs/wifi/.mac.info)
+	echo "setting mac address $mac_address from /efs"
+	ip link set wlan0 addr $mac_address
+end script
