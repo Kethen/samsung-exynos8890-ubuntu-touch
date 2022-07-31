@@ -29,5 +29,5 @@ pre-start script
 		sleep 0.5
 	done
 	# hide fuelgauge
-	mount -t tmpfs tmpfs /sys/class/power_supply/max77854-fuelgauge
+	mount -o ro -t tmpfs tmpfs /sys/class/power_supply/max77854-fuelgauge
 end script
