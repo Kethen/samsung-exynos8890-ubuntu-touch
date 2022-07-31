@@ -733,6 +733,9 @@ mountroot() {
 			fi
 		done
 
+		# /etc/ubuntu-touch-session.d/android.conf bindmount for /etc/init/update-machine-info.conf, which tries to use getprop before android is ready
+		mount -o bind ${rootmnt}/etc/ubuntu-touch-session.d/${MODEL}.conf ${rootmnt}/etc/ubuntu-touch-session.d/android.conf
+
 		# charger mode
 		if $IS_CHARGER_MODE
 		then
