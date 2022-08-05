@@ -2,7 +2,7 @@
 # Initial functions
 interface="${1}"
 updater_fd="${2}"
-ZIP="$3"
+ZIP="${3}"
 ui_print() {
     echo -en "ui_print ${1}\n" > /proc/self/fd/"${updater_fd}"
     echo -en "ui_print\n" > /proc/self/fd/"${updater_fd}"
@@ -15,30 +15,29 @@ then
 	exit 1
 fi
 
+flash_from_zip() {
+	ui_print "flashing $1 image"
+	IMAGE_EXISTS=$(unzip -l "$ZIP" | grep $2)
+	if [ -n "$IMAGE_EXISTS" ]
+	then
+		unzip -p "$ZIP" $2 | dd of=/dev/block/platform/155a0000.ufs/by-name/${3} bs=8M 1>dd_out 2>dd_err
+		if [ "$?" != "0" ]
+		then
+			ui_print "failed flashing $1 image"
+			cat dd_out dd_err | while read -r LINE
+			do
+				ui_print "$LINE"
+			done
+			exit 1
+		fi
+	else
+		ui_print "$2 is not in $ZIP, skipping $1 flashing"
+	fi
+}
 
-ui_print "flashing boot image"
-unzip -p "$ZIP" boot.img | dd of=/dev/block/platform/155a0000.ufs/by-name/BOOT bs=8M 1>dd_out 2>dd_err
-if [ "$?" != "0" ]
-then
-	ui_print "failed flashing boot image"
-	cat dd_out dd_err | while read -r LINE
-	do
-		ui_print "$LINE"
-	done
-	exit 1
-fi
-
-ui_print "flashing system image"
-unzip -p "$ZIP" system.img | dd of=/dev/block/platform/155a0000.ufs/by-name/SYSTEM bs=8M 1>dd_out 2>dd_err
-if [ "$?" != "0" ]
-then
-	ui_print "failed flashing system image"
-	cat dd_out dd_err | while read -r LINE
-	do
-		ui_print "$LINE"
-	done
-	exit 1
-fi
+flash_from_zip boot boot.img BOOT
+flash_from_zip recovery recovery.img RECOVERY
+flash_from_zip system system.img SYSTEM
 
 ui_print "finishing up"
 sync
