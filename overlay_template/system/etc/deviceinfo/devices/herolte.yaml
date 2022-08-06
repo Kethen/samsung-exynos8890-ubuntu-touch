@@ -1,3 +1,6 @@
 herolte:
   PrettyName: Samsung Galaxy S7
   DeviceType: phone
+  DoubleTapToWake:
+    - /sys/class/sec/tsp/cmd_ut_aod_enable|1|0
+    - /sys/class/sec/tsp/cmd_ut_set_aod_rect|1440x2560|0x0
