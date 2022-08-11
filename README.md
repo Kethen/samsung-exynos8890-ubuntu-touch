@@ -25,8 +25,11 @@ https://github.com/00p513-dev
 ### Pending merge requests included
 - Color/Pixel format for hardware video decoding  https://github.com/ubports/gst-plugins-bad-packaging/pull/4
 - Pulse audio https://github.com/ubports/pulseaudio-modules-droid-30/pull/1
-- Sensorfw https://gitlab.com/ubports/development/core/packaging/sensorfw/-/merge_requests/8
 - halium-generic-adaptation-build-tools https://gitlab.com/ubports/porting/community-ports/halium-generic-adaptation-build-tools/-/merge_requests/2
+
+### Merge requests that were worked around
+- Sensorfw lightsensor https://gitlab.com/ubports/development/core/packaging/sensorfw/-/merge_requests/8
+	a binary patch is applied on /vendor/lib64/sensors.sensorhub.so for now, while an alternative fix could likely be applied on android_hardware_samsung/hidl/sensors/1.0/Sensors.cpp; type 65598 is used for lightsensor, type 5 is used for "uncalibrated light sensor", while the uncalibrated lightsensor is never activated by sensorfw
 
 ### Changes made to recovery
 - https://github.com/Kethen/halium_bootable_recovery/tree/halium-11.0-s7
