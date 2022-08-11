@@ -23,9 +23,11 @@ https://github.com/00p513-dev
 - camcorder audio desync, likely an issue that should be fixed on ubport itself however, https://gitlab.com/ubports/development/core/qtubuntu-camera/-/issues/22
 
 ### Pending merge requests included
-- Color/Pixel format for hardware video decoding  https://github.com/ubports/gst-plugins-bad-packaging/pull/4
 - Pulse audio https://github.com/ubports/pulseaudio-modules-droid-30/pull/1
 - halium-generic-adaptation-build-tools https://gitlab.com/ubports/porting/community-ports/halium-generic-adaptation-build-tools/-/merge_requests/2
+
+### Merge requests that were merged
+- Color/Pixel format for hardware video decoding  https://github.com/ubports/gst-plugins-bad-packaging/pull/4
 
 ### Merge requests that were worked around
 - Sensorfw lightsensor https://gitlab.com/ubports/development/core/packaging/sensorfw/-/merge_requests/8
