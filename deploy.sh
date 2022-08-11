@@ -19,5 +19,4 @@ deploy () {
 	rm deviceinfo
 }
 
-deploy herolte
-deploy hero2lte
+deploy $1

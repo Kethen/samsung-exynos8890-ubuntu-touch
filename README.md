@@ -23,7 +23,7 @@ https://github.com/00p513-dev
 - camcorder audio desync, likely an issue that should be fixed on ubport itself however, https://gitlab.com/ubports/development/core/qtubuntu-camera/-/issues/22
 
 ### Pending merge requests included
-- Pulse audio https://github.com/ubports/pulseaudio-modules-droid-30/pull/1
+- audio routing with pulse https://github.com/ubports/pulseaudio-modules-droid-30/pull/1
 - halium-generic-adaptation-build-tools https://gitlab.com/ubports/porting/community-ports/halium-generic-adaptation-build-tools/-/merge_requests/2
 
 ### Merge requests that were merged
@@ -31,7 +31,8 @@ https://github.com/00p513-dev
 
 ### Merge requests that were worked around
 - Sensorfw lightsensor https://gitlab.com/ubports/development/core/packaging/sensorfw/-/merge_requests/8
-	a binary patch is applied on /vendor/lib64/sensors.sensorhub.so for now, while an alternative fix could likely be applied on android_hardware_samsung/hidl/sensors/1.0/Sensors.cpp; type 65598 is used for lightsensor, type 5 is used for "uncalibrated light sensor", while the uncalibrated lightsensor is never activated by sensorfw
+
+	a binary patch is applied on /vendor/lib64/sensors.sensorhub.so for now, while an alternative fix could likely be applied on android_hardware_samsung/hidl/sensors/1.0/Sensors.cpp; ootb type 65598 is used for lightsensor, type 5 is used for "uncalibrated lightsensor", at least according to symbols available in the vendor blob
 
 ### Changes made to recovery
 - https://github.com/Kethen/halium_bootable_recovery/tree/halium-11.0-s7
