@@ -33,7 +33,7 @@ setup_adb() {
     write /sys/class/android_usb/android0/idProduct 6860
     write /sys/class/android_usb/android0/functions adb
     write /sys/class/android_usb/android0/enable 1
-    start adbd
+    start android-tools-adbd
     setprop sys.usb.state adb
 }
 
@@ -43,7 +43,7 @@ setup_mtp_adb() {
     write /sys/class/android_usb/android0/idProduct 6860
     write /sys/class/android_usb/android0/functions mtp,adb
     write /sys/class/android_usb/android0/enable 1
-    start adbd
+    start android-tools-adbd
     setprop sys.usb.state mtp,adb
 }
 
@@ -58,7 +58,7 @@ setup_rndis() {
 }
 
 reset_usb() {
-	echo nothing to do for reset
+    echo nothing to do for reset
 }
 
 setup_boot() {
