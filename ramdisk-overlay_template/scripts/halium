@@ -571,7 +571,7 @@ mountroot() {
 		ln -s /android/vendor/etc/wifi /halium-system/etc/wifi
 
 		# refresh ldconfig for temporary overlays
-		LD_LIBRARY_PATH=/lib:/usr/lib chroot /halium-system /sbin/ldconfig
+		#LD_LIBRARY_PATH=/lib:/usr/lib chroot /halium-system /sbin/ldconfig
 	fi
 
 	# Identify image mode: either "rootfs" or "system"
