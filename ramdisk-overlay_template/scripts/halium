@@ -549,10 +549,30 @@ mountroot() {
 		mount -o bind /tmpmnt/halium-rootfs /halium-system
 	fi
 
+	# detect update
+	UPDATED=true
+	if [ -e /tmpmnt/last_ut_version ] && [ -e /halium-system/etc/ubuntu-build ]
+	then
+		if [ "$(cat /tmpmnt/last_ut_version)" == "$(cat /halium-system/etc/ubuntu-build)" ]
+		then
+			UPDATED=false
+		fi
+	fi
+
+	if $UPDATED
+	then
+		if [ -e /halium-system/etc/ubuntu-build ]
+		then
+			cp /halium-system/etc/ubuntu-build /tmpmnt/last_ut_version
+		else
+			echo 0 > /halium-system/etc/ubuntu-build
+			echo 0 > /tmpmnt/last_ut_version
+		fi
+	fi
+
 	# first boot modifications for herolte
 	MODEL=$(cat /model)
-	# not sure how to detect ota updates
-	if true
+	if $UPDATED
 	then
 		# create samsung mountpoints in android image, and name the device
 		mount -o loop,rw /halium-system/var/lib/lxc/android/android-rootfs.img /halium-system
@@ -572,6 +592,7 @@ mountroot() {
 
 		# refresh ldconfig for temporary overlays
 		#LD_LIBRARY_PATH=/lib:/usr/lib chroot /halium-system /sbin/ldconfig
+
 	fi
 
 	# Identify image mode: either "rootfs" or "system"
@@ -595,6 +616,13 @@ mountroot() {
 	else
 		# Neither of those exist, remount read-only
 		tell_kmsg "mounting $_syspart $imagefile (user mode)"
+		if $UPDATED
+		then
+			# sadly apparmor does not play well with overlayfs, without modifying existing ut policies
+			# so no readonly overlay for rootfs_overlay, nor persistent overlay on userdata for those who like to go onto apt install adventures
+			# hopefully this plays well with OTA by still containing all boot.tar changes within rootfs_overlay, and makes sure rootfs_overlay is always on top
+			cp -r /halium-system/rootfs_overlay/. /halium-system/
+		fi
 		mount -o remount,ro /halium-system
 		mountroot_status="$?"
 	fi
@@ -684,7 +712,7 @@ mountroot() {
 		mount_android_partitions "${rootmnt}/fstab*" ${rootmnt}/android ${rootmnt}/userdata
 
 		# mount prebaked vendor
-		mount -o loop,ro "${rootmnt}/vendor.img" ${rootmnt}/android/vendor
+		mount -t squashfs -o loop,ro "${rootmnt}/vendor.img" ${rootmnt}/android/vendor
 
 		# overlay vndservicemanager with a selinux disabled version
 		mount -o bind ${rootmnt}/opt/halium-overlay/vendor/bin/vndservicemanager ${rootmnt}/android/vendor/bin/vndservicemanager
