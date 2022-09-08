@@ -16,6 +16,7 @@ deploy () {
 	mv out/boot.img out/boot_${1}.img
 	mv out/recovery.img out/recovery_${1}.img
 	mv out/system.img out/system_${1}.img
+	mv out/rootfs.img out/rootfs_${1}.img
 	rm deviceinfo
 }
 
