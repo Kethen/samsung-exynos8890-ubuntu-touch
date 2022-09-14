@@ -96,3 +96,41 @@ devel-flashable-hero2lte:
       - out/recovery.img
       - out/ubuntu.img
 
+fake-stable-flashable-herolte:
+  stage: deploy
+  script:
+    - apt update
+    - apt install -y git img2simg jq sudo wget xz-utils
+    - git clone https://gitlab.com/ubports/community-ports/halium-generic-adaptation-build-tools -b halium-11 build
+    - ln -s deviceinfo_herolte deviceinfo
+    - DEVICE="$(source deviceinfo && echo $deviceinfo_codename)"
+    - ./prepare-fake-ota-stable.sh out/device_$DEVICE.tar.xz ota
+    - mkdir -p out
+    - ./build/system-image-from-ota.sh ota/ubuntu_command out
+    - mv out/rootfs.img out/ubuntu.img
+  artifacts:
+    paths:
+      - out/boot.img
+      - out/recovery.img
+      - out/ubuntu.img
+  when: manual
+
+fake-stable-flashable-hero2lte:
+  stage: deploy
+  script:
+    - apt update
+    - apt install -y git img2simg jq sudo wget xz-utils
+    - git clone https://gitlab.com/ubports/community-ports/halium-generic-adaptation-build-tools -b halium-11 build
+    - ln -s deviceinfo_hero2lte deviceinfo
+    - DEVICE="$(source deviceinfo && echo $deviceinfo_codename)"
+    - ./prepare-fake-ota-stable.sh out/device_$DEVICE.tar.xz ota
+    - mkdir -p out
+    - ./build/system-image-from-ota.sh ota/ubuntu_command out
+    - mv out/rootfs.img out/ubuntu.img
+  artifacts:
+    paths:
+      - out/boot.img
+      - out/recovery.img
+      - out/ubuntu.img
+  when: manual
+
