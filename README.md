@@ -24,10 +24,10 @@ https://github.com/00p513-dev
 
 ### Pending merge requests included
 - audio routing with pulse https://github.com/ubports/pulseaudio-modules-droid-30/pull/1
-- halium-generic-adaptation-build-tools https://gitlab.com/ubports/porting/community-ports/halium-generic-adaptation-build-tools/-/merge_requests/2
 
 ### Merge requests that were merged
 - Color/Pixel format for hardware video decoding  https://github.com/ubports/gst-plugins-bad-packaging/pull/4
+- halium-generic-adaptation-build-tools https://gitlab.com/ubports/porting/community-ports/halium-generic-adaptation-build-tools/-/merge_requests/2
 
 ### Merge requests that were worked around
 - Sensorfw lightsensor https://gitlab.com/ubports/development/core/packaging/sensorfw/-/merge_requests/8
