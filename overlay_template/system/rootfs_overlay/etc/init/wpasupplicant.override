@@ -1,0 +1,13 @@
+script
+	if [ -r /system/etc/ubuntu/device_environment ]; then
+		. /system/etc/ubuntu/device_environment
+		export ANDROID_HAL_WIFI_DRIVER_ID
+	fi
+
+	cat /vendor/etc/wifi/wpa_supplicant.conf > /run/wpa_supplicant.conf
+	cat /vendor/etc/wifi/wpa_supplicant_overlay.conf >> /run/wpa_supplicant.conf
+	chown root:root /run/wpa_supplicant.conf
+	chmod 644 /run/wpa_supplicant.conf
+
+	exec /sbin/wpa_supplicant -u -s -O /run/wpa_supplicant -c /run/wpa_supplicant.conf
+end script
