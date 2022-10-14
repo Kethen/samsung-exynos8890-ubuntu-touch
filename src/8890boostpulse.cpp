@@ -22,7 +22,6 @@ static const char *evdevs[] = {
 };
 
 static struct pollfd evdev_pfds[sizeof(evdevs) / sizeof(char *)] = {0};
-static bool stop_polling = false;
 
 template <typename T>
 static void set(const std::string& path, const T& value) {
@@ -48,24 +47,26 @@ static void pulse(){
 static void evdev_poller(){
 	char buf[512];
 	int device;
-	while(!stop_polling){
-		device = poll(evdev_pfds, sizeof(evdevs) / sizeof(char *), 5000);
+	while(true){
+		device = poll(evdev_pfds, sizeof(evdevs) / sizeof(char *), -1);
 		if(device < 0){
-			LOG_VERBOSE("evdev poll returned errored");
-			continue;
+			LOG("evdev poll returned error, terminating");
+			exit(1);
 		}
-		if(device == 0){
-			LOG_VERBOSE("evdev poll timed out");
-			continue;
-		}
+		int processed = 0;
 		for(int i = 0; i < sizeof(evdevs) / sizeof(char *); i++){
 			if((evdev_pfds[i].revents & POLLIN)){
 				LOG_VERBOSE(std::string("event received from ") + evdevs[i]);
 				pulse();
-				usleep(50000);
 				read(evdev_pfds[i].fd, buf, sizeof(buf));
+				processed++;
 			}
 		}
+		if(processed != device){
+			LOG(std::to_string(device) + " event(s) expected, only processed " + std::to_string(processed) + ", terminating");
+			exit(1);
+		}
+		usleep(50000);
 	}
 }
 
