@@ -539,14 +539,14 @@ mountroot() {
 	_syspart=/dev/sda14
 
 	tell_kmsg "mounting system rootfs at /halium-system"
-	if [ -n "$_syspart" ]; then
-		mount -o "$_syspart_options" $_syspart /halium-system
-	elif [ -f "$imagefile" ]; then
+	if [ -f "$imagefile" ]; then
 		# Rootfs is an image file
 		mount -o loop,rw $imagefile /halium-system
 	elif [ -d "$imagefile" ]; then
 		# Rootfs is a directory
 		mount -o bind /tmpmnt/halium-rootfs /halium-system
+	elif [ -n "$_syspart" ]; then
+		mount -o "$_syspart_options" $_syspart /halium-system
 	fi
 
 	# detect update
