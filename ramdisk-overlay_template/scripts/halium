@@ -464,6 +464,14 @@ mountroot() {
 		done
 	fi
 
+	# override data partition path
+	if [ -e /dev/disk/by-partlabel/UT_USERDATA_SD ]
+	then
+		path=/dev/disk/by-partlabel/UT_USERDATA_SD
+	else
+		path=/dev/sda18
+	fi
+
 	if [ -z "$path" ]; then
 		halium_panic "Couldn't find data partition."
 	fi
@@ -536,7 +544,12 @@ mountroot() {
 	mkdir -p /halium-system
 
 	# override syspart
-	_syspart=/dev/sda14
+	if [ -e /dev/disk/by-partlabel/UT_SYSTEM_SD ]
+	then
+		_syspart=/dev/disk/by-partlabel/UT_SYSTEM_SD
+	else
+		_syspart=/dev/sda14
+	fi
 
 	tell_kmsg "mounting system rootfs at /halium-system"
 	if [ -f "$imagefile" ]; then
