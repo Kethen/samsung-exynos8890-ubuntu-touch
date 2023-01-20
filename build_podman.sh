@@ -30,6 +30,9 @@ sudo podman run \
 	ut_builder \
 	/bin/bash -c \
 "
+export ROOTFS_URL=\"https://ci.ubports.com/job/focal-hybris-rootfs-arm64/job/master/lastSuccessfulBuild/artifact/ubuntu-touch-android9plus-rootfs-arm64.tar.gz\"
+export OTA_CHANNEL=\"20.04/arm64/android9plus/devel\"
+export DEV_TARBALL_VARIANT=_usrmerge
 ls /template | while read -r f
 do
 	if [ \"\$f\" != \"out\" ]
@@ -39,7 +42,7 @@ do
 	fi
 done
 ln -sf python2.7 /usr/bin/python
-./prepare_overlays.sh $TARGET
-./build.sh -b build_dir
-./deploy.sh $TARGET
+bash ./prepare_overlays.sh $TARGET
+bash ./build.sh -b build_dir
+bash ./deploy.sh $TARGET
 "

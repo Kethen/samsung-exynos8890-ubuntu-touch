@@ -1,0 +1,383 @@
+#!/bin/bash -eu
+
+# Copyright (C) 2013 Canonical LTD.
+# Copyright (C) 2020 TheKit <nekit1000@gmail.com>
+# Copyright (C) 2021 UBports Foundation.
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+# shellcheck source=../../lib/lxc-android-config/common.sh
+. /usr/lib/lxc-android-config/common.sh
+
+log() {
+    echo "$*" >&2
+}
+
+find_partition_image() {
+    local label=$1
+
+    local partition_images="/userdata/$label.img /var/lib/lxc/android/$label.img"
+    for image in $partition_images; do
+        if [ -e $image ]; then
+            echo "$image"
+            break
+        fi
+    done
+}
+
+parse_mount_flags() {
+    org_options="$1"
+    options=""
+    for i in $(echo "$org_options" | tr "," "\n"); do
+        if [[ "$i" =~ "context" ]]; then continue; fi
+        options+=$i","
+    done
+    options=${options%?}
+    echo "$options"
+}
+
+process_single_fstab_entry() {
+    if [ $# -lt 4 ]; then
+        return
+    fi
+
+    case "$1" in
+        # stop processing if we hit the "#endhalium" comment in the file
+        "#endhalium"*)
+            return 255
+            ;;
+        # skip comment
+        "#"*)
+            return
+            ;;
+    esac
+
+    case "$2" in
+        "/system"|"/data"|"/"|"auto"|"none"|"/misc"|"/product"|"/storage"*)
+            return
+            ;;
+    esac
+
+    case "$3" in
+        "emmc"|"swap"|"mtd")
+            return
+            ;;
+    esac
+
+    # $2 already contains a slash.
+    android_mount_point=/android${2}
+    if mountpoint -q "${android_mount_point}"; then
+        # It's mounted, maybe from halium-boot or the previous entry of fstab
+        log "Skip ${android_mount_point} as it's mounted"
+        return
+    fi
+
+    if ! mkdir -p "$android_mount_point" && \
+            [[ "$2" =~ ^/mnt ]] && \
+            [ -d /android/mnt ] \
+    ; then
+        mount -t tmpfs android_mnt /android/mnt
+        mkdir -p "$android_mount_point"
+    fi
+
+    label=$(echo $1 | awk -F/ '{print $NF}')
+    if [ -z "$label" ]; then return; fi
+
+    log "checking mount label $label"
+
+    path=$(find_partition_path "$label")
+    if [ ! -e "$path" ]; then
+        path=$(find_partition_image "$label")
+    fi
+    if [ ! -e "$path" ]; then return; fi
+
+    echo "mounting $path as $android_mount_point"
+    mount "$path" "$android_mount_point" -t "$3" -o "$(parse_mount_flags "$4")"
+}
+
+# First, extract the Android's traditional ramdisk, if shipped in /system.
+# Or, migrate one from /var/lib/lxc/android/rootfs if halium-boot extracted
+# it there.
+if [ -e /var/lib/lxc/android/rootfs/init ] && \
+        ! [ -e /android/init ]; then
+    # halium-boot prepared this. Migrate to /android for simplicity.
+    # But first, resize /android so there's actually enough space.
+    # Don't worry, it won't consume space it doesn't need.
+    mount -o remount,size=67108864 /android # 64 MB
+
+    # Then, copy all files from there to /android. It might return some error
+    # on it unable to update the mountpoint dirs, so we have to ignore those.
+    rsync -a /var/lib/lxc/android/rootfs/ /android/ || true
+
+    # Finally, ditch the tmpfs mount over there.
+    umount /var/lib/lxc/android/rootfs
+elif [ -e /android/system/boot/android-ramdisk.img ]; then
+    # Assume GNU cpio, prevent /system from being overwritten.
+    gzip -cd /android/system/boot/android-ramdisk.img | \
+        cpio --extract --directory=/android --nonmatching "system" "system/*"
+fi
+
+# So, fstab in Android could be in multiple places:
+# - Android traditional ramdisk
+# - Android first stage ramdisk (replaced by ours, so can't see)
+# - Vendor partition
+# - vendor_boot (merged into halium-boot's initrd)
+# - DTB
+
+# Deal with DTB first. Logic is pulled from Android's fs_mgr.
+android_dt_dir=$(grep -E -o '(^| )androidboot\.android_dt_dir=[^ ]+' /proc/cmdline | cut -d "=" -f2)
+if [ -z "$android_dt_dir" ]; then
+    android_dt_dir="/proc/device-tree/firmware/android/"
+fi
+
+# tr -d '\0' <${file} is used to silence "ignored null byte in input" warning from bash.
+if [ "$(tr -d '\0' <${android_dt_dir}/compatible)" = "android,firmware" ] && \
+        [ "$(tr -d '\0' <${android_dt_dir}/fstab/compatible)" = "android,fstab" ] && \
+        [[ "$(tr -d '\0' <${android_dt_dir}/fstab/status)" =~ ^(|ok|okay)$ ]] \
+; then
+    log "Processing ${android_dt_dir}/fstab/"
+
+    for entry in "${android_dt_dir}"/fstab/*; do
+        [ -d "$entry" ] || continue
+
+        [[ "$(tr -d '\0' <"${entry}/status")" =~ ^(|ok|okay)$ ]] || continue
+
+        dev=$(tr -d '\0' <"${entry}/dev")
+        mount_point=$(tr -d '\0' <"${entry}/mnt_point" || echo "/$(basename "$entry")" )
+        type=$(tr -d '\0' <"${entry}/type")
+        mnt_flags=$(tr -d '\0' <"${entry}/mnt_flags")
+
+        process_single_fstab_entry "$dev" "$mount_point" "$type" "$mnt_flags"
+    done
+fi
+
+# Now search for file fstab's. /run/first_stage_ramdisk is copied by halium-boot
+# if it detects such directory in the initrd, which indicates that vendor_boot
+# is available.
+for file in \
+    /android/fstab* \
+    /run/first_stage_ramdisk/fstab* \
+; do
+    [ -e "$file" ] || continue
+    log "Processing $file"
+
+    while read -r line; do
+        ret=0
+        # shellcheck disable=SC2086 # intend to split arguments.
+        process_single_fstab_entry $line || ret=$?
+        if [ $ret = 255 ]; then
+            break
+        fi
+    done <"$file"
+done
+
+# If, by this point /android/vendor is not mounted, that means the early fstab
+# is in the first stage ramdisk which is replaced by us. Guess the /vendor
+# partition to grab a copy of fstab in it.
+if [ -L /android/system/vendor ] && \
+        ! mountpoint -q /android/vendor; then
+    log "Guessing /android/vendor"
+
+    for l in vendor VENDOR; do
+        if vendor_part=$(find_partition_path $l); then
+            break
+        fi
+    done
+
+    if [ -n "$vendor_part" ]; then
+        log "Guessed $vendor_part as /android/vendor"
+        mkdir -p /android/vendor
+        mount -o ro "$vendor_part" /android/vendor
+    else
+        log "Hmm... can't guess a partition for /android/vendor."
+    fi
+fi
+
+# Now we can process fstab in /vendor
+for file in \
+    /android/vendor/etc/fstab* \
+; do
+    [ -e "$file" ] || continue
+    log "Processing $file"
+
+    while read -r line; do
+        ret=0
+        # shellcheck disable=SC2086 # intend to split arguments.
+        process_single_fstab_entry $line || ret=$?
+        if [ $ret = 255 ]; then
+            break
+        fi
+    done <"$file"
+done
+
+# Some special handling for /android/apex
+if [ -d /android/apex ]; then
+    log "Handling /android/apex bind-mounts"
+
+    mount -t tmpfs android_apex /android/apex
+    for apex in "com.android.runtime" "com.android.art"; do
+        target_path="/android/apex/${apex}"
+
+        for suffix in ".release" ".debug" ""; do # No suffix is valid too
+            source_path="/android/system/apex/${apex}${suffix}"
+            if [ -e "$source_path" ]; then
+                mkdir -p $target_path
+                mount -o bind $source_path $target_path
+                break
+            fi
+        done
+    done
+fi
+
+# Probe for schedtune's ability to nest cgroups (an out-of-tree functionality).
+# Leaving it mounted on unpatched kernels breaks LXC.
+if [ -d /sys/fs/cgroup/schedtune ]; then
+    mkdir /sys/fs/cgroup/schedtune/probe0 || true
+    mkdir /sys/fs/cgroup/schedtune/probe0/probe1 || true
+
+    if [ -d /sys/fs/cgroup/schedtune/probe0/probe1 ]; then
+        rmdir /sys/fs/cgroup/schedtune/probe0/probe1
+        rmdir /sys/fs/cgroup/schedtune/probe0
+    else
+        umount -l /sys/fs/cgroup/schedtune || true
+    fi
+fi
+
+# Handle devices using binderfs. In this case /dev/*binder won't appear and will
+# have to be created using symlinks from /dev/binderfs
+if [ ! -e /dev/binder ]; then
+    mkdir -p /dev/binderfs
+    mount -t binder binder /dev/binderfs -o stats=global
+    ln -s /dev/binderfs/*binder /dev
+fi
+
+# Bind-mount /android/data to /var/lib/android-data, now that /android is in place.
+log "Bind-mounting /android/data"
+mkdir -p /android/data
+mount -o bind /var/lib/android-data /android/data
+
+# Provide a bind mount from /cache to the location recovery uses, to be able
+# to apply the update. This is tricky, as recoveries from different porters can
+# do different things, which we have to account for. The detection code below
+# uses the fact that we'll likely run after a recevery that flash us, so we can
+# follow what it does.
+
+if [ -d /userdata/cache ]; then
+    true_cache_location=/userdata/cache
+# The /data/cache itself is used by Android for other purposes, so it'll always
+# exist. Thus check for the updater's log, indicating that recovery uses this
+# one.
+elif [ -e /android/data/cache/ubuntu_updater.log ]; then
+    true_cache_location=/android/data/cache
+# If /android/cache is 'mounted', then it's likely a dedicated partition.
+# We check this last because recovery sometimes also use cache directory
+# because actual /cache partition is too small.
+elif [ ! -d /android/cache ] || ! mountpoint -q /android/cache; then
+    # This means no /cache partition. Now we're in trouble, because we don't
+    # know what the recovery will do (perhaps we run before recovery).
+    # Account for both possibilities by using a symlink.
+    mkdir -p /userdata/android-data/cache
+    ln -s android-data/cache /userdata/cache
+    true_cache_location=/userdata/cache
+fi
+
+# We want to avoid unnecessary bind-mount.
+current_cache_location=/android/cache
+if [ -L "/android/cache" ]; then
+    current_cache_location=$(readlink -f /android/cache)
+fi
+
+if [ -n "$true_cache_location" ] && \
+   [ "$true_cache_location" != "$current_cache_location" ]; then
+    log "Setting up cache bindmount."
+
+    if [ -n "$current_cache_location" ]; then
+        mkdir -p "$current_cache_location"
+    fi
+    mkdir -p /android/cache
+
+    mount -o bind "$true_cache_location" /android/cache
+fi
+
+# Create an appropriate symlink for vendor files
+if [ ! -e /android/vendor ]; then
+    ln -sf system/vendor /android/vendor
+fi
+
+# Finally, rbind-mount the whole /android tree over to /var/lib/lxc/android/rootfs.
+# We can't edit the container config to points to /android instead due to lxc-start's
+# Apparmor policy. Note that on Android 9+ this might have been done by not-migrated
+# halium-boot, however the mount flag is incorrect thus we need to fix it.
+
+log "Bind-mounting /android for LXC"
+if mountpoint -q /var/lib/lxc/android/rootfs; then
+    umount /var/lib/lxc/android/rootfs/mnt || true
+    umount /var/lib/lxc/android/rootfs
+fi
+mount --rbind /android /var/lib/lxc/android/rootfs
+
+# from xenial port
+# /opt/halium-overlay is mounted differently in focal
+
+# manually trigger nonencrypted
+#mount -o bind /opt/halium-overlay/system/etc/init/hw/init.rc /var/lib/lxc/android/rootfs/system/etc/init/hw/init.rc
+
+# enable audio hal
+#mount -o bind /opt/halium-overlay/system/etc/init/init.disabled.rc /var/lib/lxc/android/rootfs/system/etc/init/init.disabled.rc
+
+# compat audio hal
+mount -o bind /android/system/lib64/hw/audio.hidl_compat.default.so /android/vendor/lib64/hw/audio.primary.default.so
+
+# bind mount efs and cpefs for samsung
+mount -o bind /android/efs /var/lib/lxc/android/rootfs/efs
+mount -o bind /android/cpefs /var/lib/lxc/android/rootfs/cpefs
+
+# bind mount cache
+mount -o bind /android/cache /var/lib/lxc/android/rootfs/cache
+
+# do not override keymaster and cause log spam
+#mount -o bind /opt/halium-overlay/system/etc/vintf/manifest.xml /var/lib/lxc/android/rootfs/system/etc/vintf/manifest.xml
+
+# disable wifi hal
+mount -o bind /dev/null /android/vendor/etc/init/android.hardware.wifi@1.0-service.rc
+mount -o bind /dev/null /android/vendor/etc/init/android.hardware.wifi.supplicant-service.rc
+mount -o bind /dev/null /android/vendor/etc/init/hostapd.android.rc
+
+# disable bluetooth hal
+mount -o bind /dev/null /android/vendor/etc/init/android.hardware.bluetooth@1.0-service.rc
+
+# overlay fingerprint hal init for starting it later with setprop
+#mount -o bind /opt/halium-overlay/vendor/etc/init/android.hardware.biometrics.fingerprint@2.1-service.samsung.rc /android/vendor/etc/init/android.hardware.biometrics.fingerprint@2.1-service.samsung.rc
+
+# enable livevibe preprocessing for microphone audio capture
+#mount -o bind /opt/halium-overlay/vendor/etc/init/utaudio.rc /android/vendor/etc/init/utaudio.rc
+
+# disable usb init
+mount -o bind /dev/null /android/vendor/etc/init/hw/init.samsungexynos8890.usb.rc
+
+# mount binary patched sensor hub
+#mount -o bind /opt/halium-overlay/vendor/lib64/sensors.sensorhub.so /android/vendor/lib64/sensors.sensorhub.so
+
+# allow users to override mixer paths if they wish to
+if ! [ -e /home/phablet/.config/samsung_mixer_paths_0_override.xml ]
+then
+    if ! [ -d /home/phablet/.config ]
+    then
+        mkdir -p /home/phablet/.config
+        chown phablet: /home/phablet
+        chown phablet: /home/phablet/.config
+    fi
+    cp /vendor/etc/mixer_paths_0.xml /home/phablet/.config/samsung_mixer_paths_0_override.xml
+fi
+chmod 644 /home/phablet/.config/samsung_mixer_paths_0_override.xml
+chown root: /home/phablet/.config/samsung_mixer_paths_0_override.xml
+mount -o bind,ro /home/phablet/.config/samsung_mixer_paths_0_override.xml /vendor/etc/mixer_paths_0.xml
+
+# allow users to tune power if they wish to
+if ! [ -e /home/phablet/.config/utpower.rc ]
+then
+    cp /vendor/etc/init/utpower.rc /home/phablet/.config/utpower.rc
+fi
+chmod 644 /home/phablet/.config/utpower.rc
+chown root: /home/phablet/.config/utpower.rc
+mount -o bind,ro /home/phablet/.config/utpower.rc /vendor/etc/init/utpower.rc
+

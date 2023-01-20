@@ -1,0 +1,20 @@
+echo preparing bluetooth
+tries=1
+while true
+do
+	if hciattach -f /vendor/firmware ttySAC1 bcm43xx
+	then
+		echo bluetooth has been initialized
+		break
+	else
+		if [ $tries -lt 11 ]
+		then
+			echo tries: $tries
+			echo hciattach failed, trying again
+			continue
+		else
+			break
+		fi
+		tries=$((tries + 1))
+	fi
+done

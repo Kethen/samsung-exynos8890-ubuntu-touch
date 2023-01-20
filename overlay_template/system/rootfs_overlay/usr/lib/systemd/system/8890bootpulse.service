@@ -1,0 +1,8 @@
+[Unit]
+Description=send boot pulses to cpu scheduler on user input
+
+[Service]
+Restart=always
+ExecStart=/usr/sbin/8890boostpulse
+
+
