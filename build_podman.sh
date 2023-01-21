@@ -17,6 +17,13 @@ then
 	sudo podman image build -t ut_builder -f Dockerfile
 fi
 
+build_mount=""
+if [ "$BUILD_DEBUG" == "true" ]
+then
+	mkdir -p build_dir
+	build_mount="-v ./build_dir:/workdir/build_dir"
+fi
+
 mkdir -p out
 
 sudo podman run \
@@ -25,6 +32,7 @@ sudo podman run \
 	-v ./:/template:ro \
 	--tmpfs /workdir \
 	-v ./out:/workdir/out \
+	$build_mount \
 	-w /workdir \
 	--privileged \
 	ut_builder \
@@ -35,7 +43,7 @@ export OTA_CHANNEL=\"20.04/arm64/android9plus/devel\"
 export DEV_TARBALL_VARIANT=_usrmerge
 ls /template | while read -r f
 do
-	if [ \"\$f\" != \"out\" ]
+	if [ \"\$f\" != \"out\" ] && [ \"\$f\" != \"build_dir\" ]
 	then
 		echo \$f
 		cp -a /template/\"\$f\" ./

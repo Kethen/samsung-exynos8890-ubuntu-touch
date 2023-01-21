@@ -315,6 +315,11 @@ if mountpoint -q /var/lib/lxc/android/rootfs; then
 fi
 mount --rbind /android /var/lib/lxc/android/rootfs
 
+### hacks
+
+# no tmpfs was mounted on /mnt for the fstab it found on this port
+mount -t tmpfs android_mnt /var/lib/lxc/android/rootfs/mnt
+
 # from xenial port
 # /opt/halium-overlay is mounted differently in focal
 
