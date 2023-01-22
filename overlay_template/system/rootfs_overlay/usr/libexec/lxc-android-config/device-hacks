@@ -9,9 +9,22 @@
 # by overlaying device-hacks.service.d/device-specific-settings.conf or the
 # device-hacks.service file itself.
 
+# see /usr/lib/lxc-android-config/lxc-android-ready
+# FIXME verify that this is needed/not needed
+while [ ! -e /dev/socket/property_service ]; do sleep 0.1; done
+while [ -z "$(getprop ro.build.version.sdk)" ]; do sleep 0.1; done
+
 bash /usr/libexec/lxc-android-config/device-hacks.d/fingerprint_reader_fix.sh
 
 bash /usr/libexec/lxc-android-config/device-hacks.d/local-image-waydroid.sh
 
 bash /usr/libexec/lxc-android-config/device-hacks.d/reload-gps-waydroid.sh
 
+echo "=== lxc android is ready and hacks has been applied ===" > /dev/kmsg
+/usr/bin/usb-tethering &
+systemctl start ssh
+sleep 60
+dmesg > /userdata/dmesg
+journalctl -b > /userdata/journal
+sync
+#reboot -f recovery
