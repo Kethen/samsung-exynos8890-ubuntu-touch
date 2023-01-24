@@ -2,13 +2,12 @@
 mount -t tmpfs android_mnt /var/lib/lxc/android/rootfs/mnt
 
 # from xenial port
-# /opt/halium-overlay is mounted differently in focal
 
 # manually trigger nonencrypted
-#mount -o bind /opt/halium-overlay/system/etc/init/hw/init.rc /var/lib/lxc/android/rootfs/system/etc/init/hw/init.rc
+mount -o bind /opt/halium-overlay/system/etc/init/hw/init.rc /var/lib/lxc/android/rootfs/system/etc/init/hw/init.rc
 
 # enable audio hal
-#mount -o bind /opt/halium-overlay/system/etc/init/init.disabled.rc /var/lib/lxc/android/rootfs/system/etc/init/init.disabled.rc
+mount -o bind /opt/halium-overlay/system/etc/init/init.disabled.rc /var/lib/lxc/android/rootfs/system/etc/init/init.disabled.rc
 
 # compat audio hal
 mount -o bind /android/system/lib64/hw/audio.hidl_compat.default.so /android/vendor/lib64/hw/audio.primary.default.so
@@ -21,7 +20,7 @@ mount -o bind /android/cpefs /var/lib/lxc/android/rootfs/cpefs
 mount -o bind /android/cache /var/lib/lxc/android/rootfs/cache
 
 # do not override keymaster and cause log spam
-#mount -o bind /opt/halium-overlay/system/etc/vintf/manifest.xml /var/lib/lxc/android/rootfs/system/etc/vintf/manifest.xml
+mount -o bind /opt/halium-overlay/system/etc/vintf/manifest.xml /var/lib/lxc/android/rootfs/system/etc/vintf/manifest.xml
 
 # disable wifi hal
 mount -o bind /dev/null /android/vendor/etc/init/android.hardware.wifi@1.0-service.rc
@@ -32,16 +31,16 @@ mount -o bind /dev/null /android/vendor/etc/init/hostapd.android.rc
 mount -o bind /dev/null /android/vendor/etc/init/android.hardware.bluetooth@1.0-service.rc
 
 # overlay fingerprint hal init for starting it later with setprop
-#mount -o bind /opt/halium-overlay/vendor/etc/init/android.hardware.biometrics.fingerprint@2.1-service.samsung.rc /android/vendor/etc/init/android.hardware.biometrics.fingerprint@2.1-service.samsung.rc
+mount -o bind /opt/halium-overlay/vendor/etc/init/android.hardware.biometrics.fingerprint@2.1-service.samsung.rc /android/vendor/etc/init/android.hardware.biometrics.fingerprint@2.1-service.samsung.rc
 
 # enable livevibe preprocessing for microphone audio capture
-#mount -o bind /opt/halium-overlay/vendor/etc/init/utaudio.rc /android/vendor/etc/init/utaudio.rc
+mount -o bind /opt/halium-overlay/vendor/etc/init/utaudio.rc /android/vendor/etc/init/utaudio.rc
 
 # disable usb init
 mount -o bind /dev/null /android/vendor/etc/init/hw/init.samsungexynos8890.usb.rc
 
 # mount binary patched sensor hub
-#mount -o bind /opt/halium-overlay/vendor/lib64/sensors.sensorhub.so /android/vendor/lib64/sensors.sensorhub.so
+mount -o bind /opt/halium-overlay/vendor/lib64/sensors.sensorhub.so /android/vendor/lib64/sensors.sensorhub.so
 
 # allow users to override mixer paths if they wish to
 if ! [ -e /home/phablet/.config/samsung_mixer_paths_0_override.xml ]

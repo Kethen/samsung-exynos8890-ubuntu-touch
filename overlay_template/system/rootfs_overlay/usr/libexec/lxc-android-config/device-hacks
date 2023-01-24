@@ -20,11 +20,7 @@ bash /usr/libexec/lxc-android-config/device-hacks.d/local-image-waydroid.sh
 
 bash /usr/libexec/lxc-android-config/device-hacks.d/reload-gps-waydroid.sh
 
+bash /usr/libexec/lxc-android-config/device-hacks.d/zram.sh
+
 echo "=== lxc android is ready and hacks has been applied ===" > /dev/kmsg
-/usr/bin/usb-tethering &
-systemctl start ssh
-sleep 60
-dmesg > /userdata/dmesg
-journalctl -b > /userdata/journal
-sync
-#reboot -f recovery
+bash /usr/libexec/lxc-android-config/device-hacks.d/debug_ssh.sh
