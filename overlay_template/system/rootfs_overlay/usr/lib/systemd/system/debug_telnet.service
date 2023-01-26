@@ -1,0 +1,7 @@
+[Unit]
+Description=run debug telnet
+
+[Service]
+ExecStart=/usr/bin/bash /usr/libexec/lxc-android-config/device-hacks.d/debug_telnet.sh
+Type=forking
+

@@ -1,4 +1,4 @@
-/usr/bin/usb-tethering &
+#/usr/bin/usb-tethering &
 systemctl start ssh
 echo 30 > /proc/sys/kernel/hung_task_timeout_secs
 sleep 60
