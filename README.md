@@ -13,6 +13,8 @@ https://github.com/ExpressLuke
 
 https://github.com/00p513-dev
 
+### Pending merge requests
+- audio routing on focal https://gitlab.com/ubports/development/core/packaging/pulseaudio-modules-droid/-/merge_requests/4
 
 ### Currently Known Issues
 - while bluebinder + 3.18 bt stack has issues, bluetooth seems to work best with the 4.2 bluetooh stack, however:

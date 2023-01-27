@@ -35,7 +35,12 @@ load-module module-augment-properties
 load-module module-switch-on-port-available
 
 ### Switch when connected by default
-load-module module-switch-on-connect skip_abstract=yes
+load-module module-switch-on-connect
+
+### Fake sink and source used by HSP
+### (loaded before Droid to avoid automatically switching to these sink/source)
+load-module module-null-sink sink_name=sink.fake.sco rate=8000 channels=1
+load-module module-null-source source_name=source.fake.sco rate=8000 channels=1
 
 ### Automatically load the Pulseaudio Droid
 .ifexists module-droid-card-30.so
@@ -50,10 +55,6 @@ load-module module-droid-hidl-30
 .ifexists module-trust-store.so
 load-module module-trust-store
 .endif
-
-### Fake sink and source used by HSP
-load-module module-null-sink sink_name=sink.fake.sco rate=8000 channels=1
-load-module module-null-source source_name=source.fake.sco rate=8000 channels=1
 
 ### Automatically load driver modules depending on the hardware available
 #.ifexists module-udev-detect.so
@@ -73,7 +74,7 @@ load-module module-bluetooth-policy
 .endif
 
 .ifexists module-bluez5-discover.so
-load-module module-bluez5-discover headset=both profile=a2dp_sink sco_sink=sink.fake.sco sco_source=source.fake.sco
+load-module module-bluez5-discover profile=a2dp_sink sco_sink=sink.fake.sco sco_source=source.fake.sco
 .endif
 
 ### Load several protocols
@@ -103,16 +104,6 @@ load-module module-native-protocol-unix
 load-module module-gconf
 .fail
 .endif
-
-### Automatically restore the default sink/source when changed by the user
-### during runtime
-### NOTE: This should be loaded as early as possible so that subsequent modules
-### that look up the default sink/source get the right value
-load-module module-default-device-restore
-
-### Automatically move streams to the default sink if the sink they are
-### connected to dies, similar for sources
-load-module module-rescue-streams
 
 ### Make sure we always have a sink around, even if it is a null sink.
 load-module module-always-sink
@@ -149,7 +140,3 @@ load-module module-dbus-protocol
 ### loading modules and rerouting streams.
 load-module module-filter-heuristics
 load-module module-filter-apply
-
-### Make some devices default
-set-default-sink sink.primary
-set-default-source source.primary
