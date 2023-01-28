@@ -22,7 +22,7 @@ bash /usr/libexec/lxc-android-config/device-hacks.d/reload-gps-waydroid.sh
 
 bash /usr/libexec/lxc-android-config/device-hacks.d/zram.sh
 
-bash /usr/libexec/lxc-android-config/device-hacks.d/v4l2_hack.sh
+bash /usr/libexec/lxc-android-config/device-hacks.d/flashlight_permission.sh
 
 echo "=== lxc android is ready and hacks has been applied ===" > /dev/kmsg
 #bash /usr/libexec/lxc-android-config/device-hacks.d/debug_ssh.sh

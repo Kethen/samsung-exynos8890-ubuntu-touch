@@ -1,2 +1,0 @@
-manual
-#exec /usr/sbin/sshd -D -o PasswordAuthentication=yes -o PermitEmptyPasswords=yes

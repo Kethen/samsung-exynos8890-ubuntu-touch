@@ -1,9 +1,16 @@
 # because xenial mir server driver do not support forcing hwc2
-while [ ! -e /dev/socket/property_service ]; do sleep 0.1; done
-while [ -z "$(getprop ro.build.version.sdk)" ]; do sleep 0.1; done
-while [ -z "$(ps -ef | grep android.hardware.graphics.composer@2.1-service)" ]; do sleep 0.1; done
-sleep 0.5
-if [ -z "$(mount | grep hwcomposer.exynos5.so)" ]
-then
-	mount -o bind /dev/null /vendor/lib64/hw/hwcomposer.exynos5.so
-fi
+
+# clear all mounts
+while [ -n "$(mount | grep hwcomposer.exynos5.so)" ]
+do
+	umount /vendor/lib64/hw/hwcomposer.exynos5.so
+done
+
+# wait till /vendor/lib64/hw/hwcomposer.exynos5.so is loaded by hwc2
+while [ -z "$(lsof /vendor/lib64/hw/hwcomposer.exynos5.so)" ]
+do
+	echo waiting for hwc2 to load /vendor/lib64/hw/hwcomposer.exynos5.so
+	sleep 0.1
+done
+
+mount -o bind /dev/null /vendor/lib64/hw/hwcomposer.exynos5.so

@@ -1,4 +1,4 @@
-echo registering the pid (namespace) of lxc container to the fingerprint sensor driver
+echo registering the pid namespace of lxc container to the fingerprint sensor driver
 
 if [ -e /dev/vfsspi ]
 then

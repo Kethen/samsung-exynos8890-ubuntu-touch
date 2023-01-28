@@ -16,6 +16,13 @@ https://github.com/00p513-dev
 ### Pending merge requests
 - audio routing on focal https://gitlab.com/ubports/development/core/packaging/pulseaudio-modules-droid/-/merge_requests/4
 
+### focal TODO
+- flashlight broke despite /sys/class/leds/torch-light/brightness is available, strace seems to indicate proper registration with the fake qcom interface but then it just don't work https://github.com/AyatanaIndicators/ayatana-indicator-power/blob/main/src/flashlight.c
+- debug sensorfwd and repowerd because automatic brightness broke
+- debug usb-moded kernel lockup
+- debug tiny bar rendering with mir-android2-platform
+- test https://github.com/Halium/hybris-patches/commit/e38a45474f2e1b2ba5a6ee340fc01c7779415373
+
 ### Currently Known Issues
 - while bluebinder + 3.18 bt stack has issues, bluetooth seems to work best with the 4.2 bluetooh stack, however:
 	- full power off has to be disabled for it to play well with the uart hci, hopefully the wifi chip itself takes the power down command well
@@ -36,5 +43,3 @@ https://github.com/00p513-dev
 
 ### Changes made to recovery
 - https://github.com/Kethen/halium_bootable_recovery/tree/halium-11.0-s7
-
-### TODO
