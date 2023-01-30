@@ -1,6 +1,6 @@
 image: ubuntu:20.04
 
-build-herolte:
+build-focal-herolte:
   stage: build
   script:
     - apt update
@@ -12,7 +12,7 @@ build-herolte:
     paths:
       - out/*
 
-build-hero2lte:
+build-focal-hero2lte:
   stage: build
   script:
     - apt update
@@ -24,43 +24,11 @@ build-hero2lte:
     paths:
       - out/*
 
-flashable-herolte:
-  stage: deploy
-  script:
-    - apt update
-    - apt install -y git img2simg jq sudo wget xz-utils
-    - git clone https://gitlab.com/ubports/community-ports/halium-generic-adaptation-build-tools -b halium-11 build
-    - ln -s deviceinfo_herolte deviceinfo
-    - DEVICE="$(source deviceinfo && echo $deviceinfo_codename)"
-    - ./build/fetch-and-prepare-latest-ota.sh "16.04/arm64/android9/devel" "$DEVICE" ota
-    - mkdir -p out
-    - ./build/system-image-from-ota.sh ota/ubuntu_command out
-  artifacts:
-    paths:
-      - out/boot.img
-      - out/recovery.img
-      - out/system.img
-  when: manual
-
-flashable-hero2lte:
-  stage: deploy
-  script:
-    - apt update
-    - apt install -y git img2simg jq sudo wget xz-utils
-    - git clone https://gitlab.com/ubports/community-ports/halium-generic-adaptation-build-tools -b halium-11 build
-    - ln -s deviceinfo_hero2lte deviceinfo
-    - DEVICE="$(source deviceinfo && echo $deviceinfo_codename)"
-    - ./build/fetch-and-prepare-latest-ota.sh "16.04/arm64/android9/devel" "$DEVICE" ota
-    - mkdir -p out
-    - ./build/system-image-from-ota.sh ota/ubuntu_command out
-  artifacts:
-    paths:
-      - out/boot.img
-      - out/recovery.img
-      - out/system.img
-  when: manual
-
-devel-flashable-herolte:
+devel-flashable-focal-herolte:
+  variables:
+    ROOTFS_URL: "https://ci.ubports.com/job/focal-hybris-rootfs-arm64/job/master/lastSuccessfulBuild/artifact/ubuntu-touch-android9plus-rootfs-arm64.tar.gz"
+    OTA_CHANNEL: "20.04/arm64/android9plus/devel"
+    DEV_TARBALL_VARIANT: _usrmerge
   stage: deploy
   script:
     - apt update
@@ -78,7 +46,11 @@ devel-flashable-herolte:
       - out/recovery.img
       - out/ubuntu.img
 
-devel-flashable-hero2lte:
+devel-flashable-focal-hero2lte:
+  variables:
+    ROOTFS_URL: "https://ci.ubports.com/job/focal-hybris-rootfs-arm64/job/master/lastSuccessfulBuild/artifact/ubuntu-touch-android9plus-rootfs-arm64.tar.gz"
+    OTA_CHANNEL: "20.04/arm64/android9plus/devel"
+    DEV_TARBALL_VARIANT: _usrmerge
   stage: deploy
   script:
     - apt update
@@ -95,42 +67,3 @@ devel-flashable-hero2lte:
       - out/boot.img
       - out/recovery.img
       - out/ubuntu.img
-
-fake-stable-flashable-herolte:
-  stage: deploy
-  script:
-    - apt update
-    - apt install -y git img2simg jq sudo wget xz-utils
-    - git clone https://gitlab.com/ubports/community-ports/halium-generic-adaptation-build-tools -b halium-11 build
-    - ln -s deviceinfo_herolte deviceinfo
-    - DEVICE="$(source deviceinfo && echo $deviceinfo_codename)"
-    - ./prepare-fake-ota-stable.sh out/device_$DEVICE.tar.xz ota
-    - mkdir -p out
-    - ./build/system-image-from-ota.sh ota/ubuntu_command out
-    - mv out/rootfs.img out/ubuntu.img
-  artifacts:
-    paths:
-      - out/boot.img
-      - out/recovery.img
-      - out/ubuntu.img
-  when: manual
-
-fake-stable-flashable-hero2lte:
-  stage: deploy
-  script:
-    - apt update
-    - apt install -y git img2simg jq sudo wget xz-utils
-    - git clone https://gitlab.com/ubports/community-ports/halium-generic-adaptation-build-tools -b halium-11 build
-    - ln -s deviceinfo_hero2lte deviceinfo
-    - DEVICE="$(source deviceinfo && echo $deviceinfo_codename)"
-    - ./prepare-fake-ota-stable.sh out/device_$DEVICE.tar.xz ota
-    - mkdir -p out
-    - ./build/system-image-from-ota.sh ota/ubuntu_command out
-    - mv out/rootfs.img out/ubuntu.img
-  artifacts:
-    paths:
-      - out/boot.img
-      - out/recovery.img
-      - out/ubuntu.img
-  when: manual
-
