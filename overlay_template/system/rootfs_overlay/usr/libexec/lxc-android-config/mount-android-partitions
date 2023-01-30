@@ -317,3 +317,4 @@ mount --rbind /android /var/lib/lxc/android/rootfs
 
 ### hacks
 bash /usr/libexec/lxc-android-config/device-hacks.d/pre_lxc_mounts.sh
+bash /usr/libexec/lxc-android-config/device-hacks.d/default_power_profile.sh
