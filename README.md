@@ -17,7 +17,6 @@ https://github.com/00p513-dev
 - audio routing on focal https://gitlab.com/ubports/development/core/packaging/pulseaudio-modules-droid/-/merge_requests/4
 
 ### focal TODO
-- debug sensorfwd and repowerd because automatic brightness broke
 - debug tiny bar rendering with mir-android2-platform
 - test https://github.com/Halium/hybris-patches/commit/e38a45474f2e1b2ba5a6ee340fc01c7779415373
 
