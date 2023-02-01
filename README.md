@@ -15,9 +15,9 @@ https://github.com/00p513-dev
 
 ### Pending merge requests
 - audio routing on focal https://gitlab.com/ubports/development/core/packaging/pulseaudio-modules-droid/-/merge_requests/4
+- hwc screen size issue https://gitlab.com/ubports/development/core/hybris-support/mir-android2-platform/-/merge_requests/11
 
 ### focal TODO
-- debug tiny bar rendering with mir-android2-platform
 - test https://github.com/Halium/hybris-patches/commit/e38a45474f2e1b2ba5a6ee340fc01c7779415373
 
 ### Currently Known Issues
