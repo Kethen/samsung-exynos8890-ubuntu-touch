@@ -11,3 +11,6 @@ export QTWEBENGINE_CHROMIUM_FLAGS="--enable-gpu-rasterization --enable-zero-copy
 
 # enable OverlayScrollbar
 export QTWEBENGINE_CHROMIUM_FLAGS="$QTWEBENGINE_CHROMIUM_FLAGS --enable-features=OverlayScrollbar"
+
+# enable hardware video decoding
+export QTWEBENGINE_CHROMIUM_FLAGS="$QTWEBENGINE_CHROMIUM_FLAGS --enable-accelerated-video-decode --enable-features=MojoVideoDecoder"
