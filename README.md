@@ -15,10 +15,9 @@ https://github.com/00p513-dev
 
 ### Pending merge requests
 - audio routing on focal https://gitlab.com/ubports/development/core/packaging/pulseaudio-modules-droid/-/merge_requests/4
-- hwc screen size issue https://gitlab.com/ubports/development/core/hybris-support/mir-android2-platform/-/merge_requests/11
 
 ### focal TODO
-- test https://github.com/Halium/hybris-patches/commit/e38a45474f2e1b2ba5a6ee340fc01c7779415373
+- debug usb-moded unreliability
 
 ### Currently Known Issues
 - flashlight is currently not working on focal https://gitlab.com/ubports/development/core/packaging/ayatana-indicators/ayatana-indicator-power/-/issues/5
@@ -28,8 +27,10 @@ https://github.com/00p513-dev
 - swlan0 is disabled to not confuse NetworkManager, but that means no wifi tethering while wifi is connected, wlan0 is used to do both
 - fingetprint sensor should work, but only tested on /dev/vfsspi(viper), not /dev/esfp0(egis), I don't have a s7 with egis fingerprint sensor to test with
 - camcorder audio desync, likely an issue that should be fixed on ubport itself however, https://gitlab.com/ubports/development/core/qtubuntu-camera/-/issues/22
+	- https://github.com/Halium/hybris-patches/pull/64 should fix it
 
 ### Merge requests that were merged
+- hwc screen size issue https://gitlab.com/ubports/development/core/hybris-support/mir-android2-platform/-/merge_requests/11
 - Color/Pixel format for hardware video decoding  https://github.com/ubports/gst-plugins-bad-packaging/pull/4
 - halium-generic-adaptation-build-tools https://gitlab.com/ubports/porting/community-ports/halium-generic-adaptation-build-tools/-/merge_requests/2
 - audio routing with pulse https://github.com/ubports/pulseaudio-modules-droid-30/pull/1
