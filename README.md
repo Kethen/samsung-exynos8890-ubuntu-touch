@@ -16,9 +16,6 @@ https://github.com/00p513-dev
 ### Pending merge requests
 - audio routing on focal https://gitlab.com/ubports/development/core/packaging/pulseaudio-modules-droid/-/merge_requests/4
 
-### focal TODO
-- debug usb-moded unreliability
-
 ### Currently Known Issues
 - flashlight is currently not working on focal https://gitlab.com/ubports/development/core/packaging/ayatana-indicators/ayatana-indicator-power/-/issues/5
 - while bluebinder + 3.18 bt stack has issues, bluetooth seems to work best with the 4.2 bluetooh stack, however:
