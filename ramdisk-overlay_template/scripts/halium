@@ -777,6 +777,12 @@ mountroot() {
 		# /etc/ubuntu-touch-session.d/android.conf bindmount for /etc/init/update-machine-info.conf, which tries to use getprop before android is ready
 		mount -o bind ${rootmnt}/etc/ubuntu-touch-session.d/${MODEL}.conf ${rootmnt}/etc/ubuntu-touch-session.d/android.conf
 
+		# hide sdcard when booting from it
+		if [ -e /dev/disk/by-partlabel/UT_SYSTEM_SD ]
+		then
+			 mount -o bind /dev/null ${rootmnt}/usr/lib/udev/rules.d/99-zzz-sdcard.rules
+		fi
+
 		# charger mode
 		if $IS_CHARGER_MODE
 		then

@@ -33,6 +33,9 @@ mount -o bind /dev/null /android/vendor/etc/init/android.hardware.bluetooth@1.0-
 # overlay fingerprint hal init for starting it later with setprop
 mount -o bind /opt/halium-overlay/vendor/etc/init/android.hardware.biometrics.fingerprint@2.1-service.samsung.rc /android/vendor/etc/init/android.hardware.biometrics.fingerprint@2.1-service.samsung.rc
 
+# overlay gnss hal init for starting it later with setprop
+mount -o bind /opt/halium-overlay/vendor/etc/init/vendor.samsung.hardware.gnss@1.0-service.rc /android/vendor/etc/init/vendor.samsung.hardware.gnss@1.0-service.rc
+
 # enable livevibe preprocessing for microphone audio capture
 mount -o bind /opt/halium-overlay/vendor/etc/init/utaudio.rc /android/vendor/etc/init/utaudio.rc
 
