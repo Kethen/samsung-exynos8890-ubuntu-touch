@@ -1,0 +1,8 @@
+[Unit]
+Description=handle nl80211 events
+
+[Service]
+Restart=always
+ExecStart=/usr/bin/bash /usr/libexec/lxc-android-config/device-hacks.d/nl80211_event_handler.sh
+
+

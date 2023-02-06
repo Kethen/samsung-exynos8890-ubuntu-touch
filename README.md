@@ -17,6 +17,11 @@ https://github.com/00p513-dev
 - audio routing on focal https://gitlab.com/ubports/development/core/packaging/pulseaudio-modules-droid/-/merge_requests/4
 
 ### Currently Known Issues
+- focal NetworkManager + wpa_supplicant stopped triggering periodic re-scan nor handle cfg80211_disconnected, a work-around event handler is currently used to handle cfg80211_disconnected
+	- driver triggers cfg80211_disconnected when wifi chip pcie goes down unexpectedly during deep sleep (android style short wake/suspend loop)
+	- when cfg80211_disconnected is triggered on the driver side, wifi would stop working until a radio restart from userspace
+	- some how reason 32771 is presented to iw on nl80211 during cfg80211_disconnected, but reason 1 ("Unspecified") was issued on the driver
+	- cfg80211_disconnected might have never been triggered on xenial due to working periodic re-scan on NetworkManager
 - flashlight is currently not working on focal https://gitlab.com/ubports/development/core/packaging/ayatana-indicators/ayatana-indicator-power/-/issues/5
 - while bluebinder + 3.18 bt stack has issues, bluetooth seems to work best with the 4.2 bluetooh stack, however:
 	- full power off has to be disabled for it to play well with the uart hci, hopefully the wifi chip itself takes the power down command well
