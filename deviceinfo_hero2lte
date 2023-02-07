@@ -3,7 +3,7 @@ deviceinfo_manufacturer="Samsung"
 deviceinfo_codename="hero2lte"
 deviceinfo_arch="aarch64"
 deviceinfo_kernel_source="https://gitlab.com/ubports/porting/community-ports/android11/samsung-galaxy-s7/kernel-samsung-universal8890.git"
-deviceinfo_kernel_source_branch="halium-11.0-4.2-bt"
+deviceinfo_kernel_source_branch="halium-11.0-4.2-bt-focal"
 deviceinfo_kernel_defconfig="exynos8890-hero2lte_defconfig"
 # put cmdline in defconfig instead, does not work on samsung
 deviceinfo_kernel_cmdline="buildvariant=userdebug"
