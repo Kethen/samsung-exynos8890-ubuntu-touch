@@ -17,6 +17,13 @@ then
 	sudo podman image build -t ut_builder -f Dockerfile
 fi
 
+build_mount=""
+if [ "$BUILD_DEBUG" == "true" ]
+then
+	mkdir -p build_dir
+	build_mount="-v ./build_dir:/workdir/build_dir"
+fi
+
 mkdir -p out
 
 sudo podman run \
@@ -25,6 +32,7 @@ sudo podman run \
 	-v ./:/template:ro \
 	--tmpfs /workdir \
 	-v ./out:/workdir/out \
+	$build_mount \
 	-w /workdir \
 	--privileged \
 	ut_builder \
@@ -32,14 +40,14 @@ sudo podman run \
 "
 ls /template | while read -r f
 do
-	if [ \"\$f\" != \"out\" ]
+	if [ \"\$f\" != \"out\" ] && [ \"\$f\" != \"build_dir\" ]
 	then
 		echo \$f
 		cp -a /template/\"\$f\" ./
 	fi
 done
 ln -sf python2.7 /usr/bin/python
-./prepare_overlays.sh $TARGET
-./build.sh -b build_dir
-./deploy.sh $TARGET
+bash ./prepare_overlays.sh $TARGET
+bash ./build.sh -b build_dir
+bash ./deploy.sh $TARGET
 "
