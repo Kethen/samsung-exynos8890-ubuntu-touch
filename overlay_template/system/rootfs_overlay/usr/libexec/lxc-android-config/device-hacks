@@ -24,7 +24,5 @@ bash /usr/libexec/lxc-android-config/device-hacks.d/zram.sh
 
 bash /usr/libexec/lxc-android-config/device-hacks.d/flashlight_permission.sh
 
-bash /usr/libexec/lxc-android-config/device-hacks.d/limit_charging.sh
-
 echo "=== lxc android is ready and hacks has been applied ===" > /dev/kmsg
 #bash /usr/libexec/lxc-android-config/device-hacks.d/debug_ssh.sh
