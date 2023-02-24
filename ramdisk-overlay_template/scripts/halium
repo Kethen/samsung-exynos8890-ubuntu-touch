@@ -777,6 +777,20 @@ mountroot() {
 		# /etc/ubuntu-touch-session.d/android.conf bindmount for /etc/init/update-machine-info.conf, which tries to use getprop before android is ready
 		mount -o bind ${rootmnt}/etc/ubuntu-touch-session.d/${MODEL}.conf ${rootmnt}/etc/ubuntu-touch-session.d/android.conf
 
+		# apply charging limit here once in case we are booting into charger mode
+		if [ -e ${rootmnt}/userdata/user-data/phablet/.config/limit_charging ]
+		then
+			echo 1 > /sys/class/power_supply/battery/store_mode
+			limit=$(cat ${rootmnt}/userdata/user-data/phablet/.config/limit_charging)
+			if [ $limit -lt 95 ] && [ $limit -gt 60 ]
+			then
+				echo $limit > /sys/module/sec_battery/parameters/store_mode_max
+			fi
+			# debug
+			#cat /sys/class/power_supply/battery/store_mode > ${rootmnt}/userdata/store_mode
+			#cat /sys/module/sec_battery/parameters/store_mode_max > ${rootmnt}/userdata/store_mode_max
+		fi
+
 		# charger mode
 		if $IS_CHARGER_MODE
 		then
