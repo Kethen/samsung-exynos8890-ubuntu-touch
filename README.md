@@ -15,8 +15,13 @@ https://github.com/00p513-dev
 
 ### Pending merge requests
 - audio routing on focal https://gitlab.com/ubports/development/core/packaging/pulseaudio-modules-droid/-/merge_requests/4
+- network manager WPA-PSK-SHA256 workaround https://gitlab.com/ubports/development/core/packaging/network-manager/-/merge_requests/9
 
 ### Currently Known Issues
+- focal hotspot toggle is currently in a finicky state, but nmcli/nmtui is working
+- starting ap mode (hotspot) after using WPA-PSK-SHA256 in sta mode, or just starting ap mode (hotspot) with WPA-PSK-SHA256, the wifi chip gets into a very inconsistent state until a reboot (broken ap beacons, broken scanning)
+	- it is now default disabled
+	- if you wish to use ieee80211w/pmf/WPA-PSK-SHA256 on a connection, do `sudo nmcli con mod <connection name> 802-11-wireless-security.pmf required`
 - focal NetworkManager + wpa_supplicant stopped triggering periodic re-scan nor handle cfg80211_disconnected, a work-around event handler is currently used to handle cfg80211_disconnected
 	- driver triggers cfg80211_disconnected when wifi chip pcie goes down unexpectedly during deep sleep (android style short wake/suspend loop)
 	- when cfg80211_disconnected is triggered on the driver side, wifi would stop working until a radio restart from userspace
