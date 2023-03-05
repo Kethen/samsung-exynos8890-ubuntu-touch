@@ -45,6 +45,7 @@ devel-flashable-focal-herolte:
       - out/boot.img
       - out/recovery.img
       - out/ubuntu.img
+  when: manual
 
 devel-flashable-focal-hero2lte:
   variables:
@@ -67,3 +68,4 @@ devel-flashable-focal-hero2lte:
       - out/boot.img
       - out/recovery.img
       - out/ubuntu.img
+  when: manual
