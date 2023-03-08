@@ -722,10 +722,28 @@ mountroot() {
 
 		# Mount all the Android partitions
 		#mount_android_partitions "${rootmnt}/var/lib/lxc/android/rootfs/fstab*" ${rootmnt}/android ${rootmnt}/userdata
-		mount_android_partitions "${rootmnt}/fstab*" ${rootmnt}/android ${rootmnt}/userdata
+		#mount_android_partitions "${rootmnt}/fstab*" ${rootmnt}/android ${rootmnt}/userdata
 
 		# mount prebaked vendor
 		mount -t squashfs -o loop,ro "${rootmnt}/vendor.img" ${rootmnt}/android/vendor
+
+		# copy efs and cpefs to userdata and mount them, incase rm -rf happens
+		# not optimal but better than losing everything in there
+		if ! [ -e ${rootmnt}/userdata/efs ]
+		then
+			mount -o ro /dev/sda3 ${rootmnt}/android/efs
+			cp -a ${rootmnt}/android/efs ${rootmnt}/userdata/efs
+			umount ${rootmnt}/android/efs
+		fi
+		mount -o bind ${rootmnt}/userdata/efs ${rootmnt}/android/efs
+
+		if ! [ -e ${rootmnt}/userdata/cpefs ]
+		then
+			mount -o ro /dev/sdd1 ${rootmnt}/android/cpefs
+			cp -a ${rootmnt}/android/cpefs ${rootmnt}/userdata/cpefs
+			umount ${rootmnt}/android/cpefs
+		fi
+		mount -o bind ${rootmnt}/userdata/cpefs ${rootmnt}/android/cpefs
 
 		# overlay vndservicemanager with a selinux disabled version
 		mount -o bind ${rootmnt}/opt/halium-overlay/vendor/bin/vndservicemanager ${rootmnt}/android/vendor/bin/vndservicemanager
