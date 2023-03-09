@@ -42,6 +42,9 @@ mount -o bind /opt/halium-overlay/vendor/etc/init/utaudio.rc /android/vendor/etc
 # disable usb init
 mount -o bind /dev/null /android/vendor/etc/init/hw/init.samsungexynos8890.usb.rc
 
+# disable livedisplay, not like UT uses it
+mount -o bind /dev/null /android/vendor/etc/init/vendor.lineage.livedisplay@2.1-service.universal8890.rc
+
 # mount binary patched sensor hub
 mount -o bind /opt/halium-overlay/vendor/lib64/sensors.sensorhub.so /android/vendor/lib64/sensors.sensorhub.so
 

@@ -8,7 +8,7 @@ ui_print() {
     echo -en "ui_print\n" > /proc/self/fd/"${updater_fd}"
 }
 
-DEVICE_MODEL=$(cat /default.prop | grep 'ro.vendor.product.device=' | sed -E 's/ro.vendor.product.device=(.+)/\1/')
+DEVICE_MODEL=$(getprop ro.product.device)
 if [ "$MODEL" != "$DEVICE_MODEL" ]
 then
 	ui_print "this zip is for $MODEL, refuse to flash on $DEVICE_MODEL"
