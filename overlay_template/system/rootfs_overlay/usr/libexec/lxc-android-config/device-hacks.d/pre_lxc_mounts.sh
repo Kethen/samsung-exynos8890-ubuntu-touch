@@ -73,5 +73,7 @@ chown root: /home/phablet/.config/utpower.rc
 mount -o bind,ro /home/phablet/.config/utpower.rc /vendor/etc/init/utpower.rc
 
 mount -o ro -t tmpfs tmpfs /sys/class/power_supply/max77854-fuelgauge
+mount -o ro -t tmpfs tmpfs /sys/class/power_supply/p9220-charger
+
 
 echo === pre_lxc_mounts.sh has finished === > /dev/kmsg

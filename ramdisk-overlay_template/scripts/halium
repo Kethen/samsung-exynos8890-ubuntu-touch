@@ -465,11 +465,17 @@ mountroot() {
 	fi
 
 	# override data partition path
+	MODEL=$(cat /model)
 	if [ -e /dev/disk/by-partlabel/UT_USERDATA_SD ]
 	then
 		path=/dev/disk/by-partlabel/UT_USERDATA_SD
 	else
-		path=/dev/sda18
+		if [ "$MODEL" == "gracerlte" ]
+		then
+			path=/dev/sda23
+		else
+			path=/dev/sda18
+		fi
 	fi
 
 	if [ -z "$path" ]; then
@@ -548,7 +554,12 @@ mountroot() {
 	then
 		_syspart=/dev/disk/by-partlabel/UT_SYSTEM_SD
 	else
-		_syspart=/dev/sda14
+		if [ "$MODEL" == "gracerlte" ]
+		then
+			_syspart=/dev/sda16
+		else
+			_syspart=/dev/sda14
+		fi
 	fi
 
 	tell_kmsg "mounting system rootfs at /halium-system"
