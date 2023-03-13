@@ -48,6 +48,9 @@ mount -o bind /dev/null /android/vendor/etc/init/vendor.lineage.livedisplay@2.1-
 # mount binary patched sensor hub
 mount -o bind /opt/halium-overlay/vendor/lib64/sensors.sensorhub.so /android/vendor/lib64/sensors.sensorhub.so
 
+# load pie firmware
+mount -o bind /opt/halium-overlay/vendor/etc/wifi /android/vendor/etc/wifi
+
 # allow users to override mixer paths if they wish to
 if ! [ -e /home/phablet/.config/samsung_mixer_paths_0_override.xml ]
 then
