@@ -1,0 +1,11 @@
+[Unit]
+Description=Location Services
+After=device-hacks.service
+
+[Service]
+Type=dbus
+BusName=com.lomiri.location.Service
+ExecStart=/usr/bin/lomiri-location-serviced --bus system --provider gps::Provider --provider remote::Provider
+
+[Install]
+WantedBy=multi-user.target

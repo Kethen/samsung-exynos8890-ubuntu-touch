@@ -14,11 +14,11 @@
 while [ ! -e /dev/socket/property_service ]; do sleep 0.1; done
 while [ -z "$(getprop ro.build.version.sdk)" ]; do sleep 0.1; done
 
-bash /usr/libexec/lxc-android-config/device-hacks.d/fingerprint_reader_fix.sh
+#bash /usr/libexec/lxc-android-config/device-hacks.d/fingerprint_reader_fix.sh
 
 bash /usr/libexec/lxc-android-config/device-hacks.d/local-image-waydroid.sh
 
-bash /usr/libexec/lxc-android-config/device-hacks.d/start_gps.sh
+bash /usr/libexec/lxc-android-config/device-hacks.d/waydroid_register_gps.sh
 
 bash /usr/libexec/lxc-android-config/device-hacks.d/zram.sh
 

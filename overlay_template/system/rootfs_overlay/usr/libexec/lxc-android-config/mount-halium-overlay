@@ -1,0 +1,119 @@
+#!/bin/dash -eu
+
+# a list of items to mount is available at /usr/libexec/lxc-android-config/device-hacks.d/pre_lxc_mounts.sh
+exit 0
+
+# Copyright (C) 2013 Canonical LTD.
+# Copyright (C) 2021 UBports Foundation.
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+log() {
+    echo "$*" >&2
+}
+
+# If lxc-android-config happens to ship udev rules for this device, bind-mount
+# that first. The Android's system can still override this in the overlay.
+#
+# This detection won't work for Android 9 GSI. But that's ok. We don't ship any
+# udev rules for Android 9 devices anyway.
+if ! mountpoint -q /lib/udev/rules.d/70-android.rules; then
+    device=$(grep ^ro.product.device= /android/system/build.prop | sed -e 's/.*=//')
+    if [ -n "$device" ] ; then
+        device_udev="/usr/lib/lxc-android-config/70-${device}.rules"
+        if [ -e "$device_udev" ]; then
+            log "Bind-mount shipped udev rules for ${device}"
+            mount --bind "$device_udev" /lib/udev/rules.d/70-android.rules
+        fi
+    fi
+fi
+
+# Now mount the overlay in /android/system. It can be in a few places.
+overlay_source=''
+for d in \
+    /android/system/halium \
+    /android/system/ubuntu \
+    /opt/halium-overlay/ \
+    /usr/share/halium-overlay/ \
+; do
+    if [ -d "$d" ]; then
+        overlay_source="$d"
+        break
+    fi
+done
+
+if [ -z "$overlay_source" ]; then
+    log "No Halium overlay in the Android image, do nothing."
+    exit 0
+fi
+
+mount_bind_safe() {
+    if mountpoint -q "$2"; then
+        # Protect against already overlaid file/overlay in a writable path.
+        log "WARNING: $2 is already a mountpoint."
+        return
+    fi
+
+    mount --bind "$1" "$2"
+}
+
+overlay_dir() {
+    local src=$1
+    local target=$2
+    local srcfile
+    local targetfile
+
+    for srcfile in "$src"/*; do
+        # Protect against null match
+        if ! [ -e "$srcfile" ]; then break; fi
+
+        filename="$(basename "$srcfile")"
+        targetfile="${target}/${filename}"
+
+        if [ -d "$srcfile" ]; then
+            if ! [ -d "$targetfile" ]; then
+                log "WARNING: $targetfile is not a directory, cannot overlay directory source."
+                continue
+            fi
+
+            if [ -e "$srcfile"/.halium-override-dir ]; then
+                # Override the whole directory.
+                # TODO: has nothing to prevent hiding a writable path.
+                mount_bind_safe "$srcfile" "$targetfile"
+            elif [ -e "$srcfile"/.halium-overlay-dir ]; then
+                # "Merge" the directory
+                # TODO: has nothing to prevent hiding a writable path.
+
+                # https://www.kernel.org/doc/html/latest/filesystems/overlayfs.html#multiple-lower-layers
+                # "The specified lower directories will be stacked beginning
+                # from the rightmost one and going left."
+                mount -t overlay -o "lowerdir=${srcfile}:${targetfile}" \
+                    "halium-overlay-${filename}" "${targetfile}"
+            else
+                # Normal dir. Has to recurse further.
+                overlay_dir "$srcfile" "$targetfile"
+            fi
+        else
+            # Simple single-file bind-mount
+            if [ -d "$targetfile" ]; then
+                log "WARNING: $targetfile is a directory, cannot overlay file source."
+                continue
+            elif ! [ -e "$targetfile" ]; then
+                log "WARNING: $targetfile doesn't exist, cannot overlay."
+                continue
+            fi
+
+            mount_bind_safe "$srcfile" "$targetfile"
+        fi
+    done
+}
+
+overlay_dir "$overlay_source" /
+
+# Allow loading modules from Android system image.
+# TODO: do we need to do anything to support modules in /vendor or vendor_boot?
+if [ -e /android/system/lib/modules ]; then
+    mount --bind /android/system/lib/modules /lib/modules
+fi
+
+# Because the overlay might contain systemd config, reload systemd config once.
+systemctl daemon-reload
