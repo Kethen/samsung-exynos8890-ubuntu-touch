@@ -23,6 +23,10 @@ bash /usr/libexec/lxc-android-config/device-hacks.d/local-image-waydroid.sh
 
 bash /usr/libexec/lxc-android-config/device-hacks.d/zram.sh
 
+bash /usr/libexec/lxc-android-config/device-hacks.d/swap.sh
+
+bash /usr/libexec/lxc-android-config/device-hacks.d/anti_flicker.sh
+
 bash /usr/libexec/lxc-android-config/device-hacks.d/flashlight_permission.sh
 
 bash /usr/libexec/lxc-android-config/device-hacks.d/waydroid_register_gps.sh
