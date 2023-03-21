@@ -30,6 +30,21 @@ mode_enum_low_power = 1
 # https://cs.android.com/android/platform/superproject/+/android-11.0.0_r48:hardware/interfaces/power/aidl/aidl_api/android.hardware.power/current/android/hardware/power/Boost.aidl
 boost_enum_interaction = 0
 
+first_boot_check_file = "/tmp/aidl_perf_boost_booted"
+
+first_boot_state = None
+def is_first_boot():
+	global first_boot_state
+	if first_boot_state is None:
+		try:
+			open(first_boot_check_file, "r")
+			first_boot_state = False
+		except:
+			first_boot_state = True
+			f = open(first_boot_check_file, "w")
+			f.close()
+	return first_boot_state
+
 def set_mode(client, type_enum, enable):
 	if enable:
 		enable = 1
@@ -48,7 +63,7 @@ def set_boost(client, type_enum, duration_ms):
 	reply, status = client.transact_sync_reply(set_boost_id, request)
 	return (reply, status)
 
-was_interactive = True
+was_interactive = not is_first_boot()
 set_interactive_client = None
 def set_interactive(is_interactive):
 	global was_interactive
@@ -120,7 +135,7 @@ bus = dbus.SessionBus()
 bus.add_match_string(match_string)
 bus.add_message_filter(filter_cb)
 
-set_interactive(False)
+set_interactive(is_first_boot())
 
 print("starting glib loop")
 loop = GLib.MainLoop()
