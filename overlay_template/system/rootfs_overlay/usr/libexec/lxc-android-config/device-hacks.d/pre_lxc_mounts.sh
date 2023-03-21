@@ -36,9 +36,6 @@ mount -o bind /dev/null /android/vendor/etc/init/android.hardware.bluetooth@1.0-
 # overlay gnss hal init for starting it later with setprop
 #mount -o bind /opt/halium-overlay/vendor/etc/init/vendor.samsung.hardware.gnss@1.0-service.rc /android/vendor/etc/init/vendor.samsung.hardware.gnss@1.0-service.rc
 
-# enable livevibe preprocessing for microphone audio capture
-mount -o bind /opt/halium-overlay/vendor/etc/init/utaudio.rc /android/vendor/etc/init/utaudio.rc
-
 # disable usb init
 mount -o bind /dev/null /android/vendor/etc/init/hw/init.samsungexynos8890.usb.rc
 
@@ -66,14 +63,14 @@ chmod 644 /home/phablet/.config/samsung_mixer_paths_0_override.xml
 chown root: /home/phablet/.config/samsung_mixer_paths_0_override.xml
 mount -o bind,ro /home/phablet/.config/samsung_mixer_paths_0_override.xml /vendor/etc/mixer_paths_0.xml
 
-# allow users to tune power if they wish to
-if ! [ -e /home/phablet/.config/utpower.rc ]
+# allow users to override aidl power config if they wish to
+if ! [ -e /home/phablet/.config/powerhint.json ]
 then
-    cp /vendor/etc/init/utpower.rc /home/phablet/.config/utpower.rc
+    cp /vendor/etc/powerhint.json /home/phablet/.config/powerhint.json
 fi
-chmod 644 /home/phablet/.config/utpower.rc
-chown root: /home/phablet/.config/utpower.rc
-mount -o bind,ro /home/phablet/.config/utpower.rc /vendor/etc/init/utpower.rc
+chmod 644 /home/phablet/.config/powerhint.json
+chown root: /home/phablet/.config/powerhint.json
+mount -o bind,ro /home/phablet/.config/powerhint.json /vendor/etc/powerhint.json
 
 # hide extra power_supply sysfs nodes that present themselves as batteries
 mount -o ro -t tmpfs tmpfs /sys/class/power_supply/max77854-fuelgauge

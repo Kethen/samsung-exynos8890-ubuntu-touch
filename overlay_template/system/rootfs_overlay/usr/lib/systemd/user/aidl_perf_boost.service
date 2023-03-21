@@ -3,6 +3,6 @@ Description=send boot pulses to cpu scheduler on user input
 
 [Service]
 Restart=always
-ExecStart=/usr/bin/python3 /usr/libexec/lxc-android-config/device-hacks.d/temp_perf_boost.py
+ExecStart=/usr/bin/python3 /usr/libexec/lxc-android-config/device-hacks.d/aidl_perf_boost.py
 
 
