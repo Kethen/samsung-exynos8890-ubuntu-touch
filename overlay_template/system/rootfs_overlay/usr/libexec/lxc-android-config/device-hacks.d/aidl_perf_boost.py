@@ -32,11 +32,11 @@ boost_enum_interaction = 0
 
 first_boot_check_file = "/tmp/aidl_perf_boost_booted"
 
-power_saving_tiggle_file = "/home/phablet/.config/power_saving"
+power_saving_toggle_file = "/home/phablet/.config/power_saving"
 
 def is_power_saving():
 	try:
-		f = open(power_saving_tiggle_file, "r")
+		f = open(power_saving_toggle_file, "r")
 		f.close()
 		return True
 	except:
@@ -135,6 +135,7 @@ tries = 0
 while service is None and tries < 20:
 	service, status = sm.get_service_sync(service_name)
 	time.sleep(0.5)
+	tries = tries + 1
 
 if service is None:
 	raise Exception("failed oepning {0}".format(service_name))
