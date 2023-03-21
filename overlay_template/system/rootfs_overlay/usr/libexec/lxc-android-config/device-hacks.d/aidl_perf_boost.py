@@ -32,6 +32,16 @@ boost_enum_interaction = 0
 
 first_boot_check_file = "/tmp/aidl_perf_boost_booted"
 
+power_saving_tiggle_file = "/home/phablet/.config/power_saving"
+
+def is_power_saving():
+	try:
+		f = open(power_saving_tiggle_file, "r")
+		f.close()
+		return True
+	except:
+		return False
+
 first_boot_state = None
 def is_first_boot():
 	global first_boot_state
@@ -77,17 +87,19 @@ def set_interactive(is_interactive):
 
 	if is_interactive != was_interactive:
 		was_interactive = is_interactive
+		power_saving = is_power_saving()
+
 		if is_interactive:
 			# this is supposed to be triggered by android wm for various animations, instead of on screen-on
 			# https://cs.android.com/search?q=Boost.INTERACTION&ss=android%2Fplatform%2Fsuperproject:frameworks%2F
 			# note that 8890bootpulse partially does it current by polling user input and setting one of the kernel interfaces directly
 			set_boost(client, boost_enum_interaction, 3 * 1000)
 		set_mode(client, mode_enum_interactive, is_interactive)
-		set_mode(client, mode_enum_sustained_performance, is_interactive)
+		set_mode(client, mode_enum_sustained_performance, is_interactive and (not power_saving))
 		# pre-ramp up gpu clock at least for the s7 https://github.com/8890q/android_device_samsung_universal8890-common/blob/lineage-19.1/configs/power/powerhint.json#L417
 		# given the way UT renders currently it helps with the UI, seems to help scrolling in morph browser as well
-		set_mode(client, mode_enum_expensive_rendering, is_interactive)
-		set_mode(client, mode_enum_low_power, not is_interactive)
+		set_mode(client, mode_enum_expensive_rendering, is_interactive and (not power_saving))
+		set_mode(client, mode_enum_low_power, (not is_interactive) or power_saving)
 
 	#if is_interactive:
 	#	p = subprocess.run(['/usr/bin/getprop', '8890.interactive_big_cores'], stdout=subprocess.PIPE)
