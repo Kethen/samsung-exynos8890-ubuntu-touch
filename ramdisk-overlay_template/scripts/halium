@@ -759,8 +759,12 @@ mountroot() {
 		# overlay vndservicemanager with a selinux disabled version
 		mount -o bind ${rootmnt}/opt/halium-overlay/vendor/bin/vndservicemanager ${rootmnt}/android/vendor/bin/vndservicemanager
 
+		# disable booting from sd built into the newer vendor
+		mount -o bind ${rootmnt}/opt/halium-overlay/vendor/etc/init/hw/init.samsungexynos8890.rc ${rootmnt}/android/vendor/etc/init/hw/init.samsungexynos8890.rc
+
 		# make fstab empty since mounting is done for lpm
 		mount -o bind /dev/null ${rootmnt}/android/vendor/etc/fstab.samsungexynos8890
+		mount -o bind /dev/null ${rootmnt}/android/vendor/etc/fstab.samsungexynos8890.sd
 
 		# system is a special case
 		tell_kmsg "moving Android system to /android/system"

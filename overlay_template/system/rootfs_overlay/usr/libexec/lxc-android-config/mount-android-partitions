@@ -124,6 +124,9 @@ fi
 # - DTB
 
 # Deal with DTB first. Logic is pulled from Android's fs_mgr.
+# disabled
+if false
+then
 android_dt_dir=$(grep -E -o '(^| )androidboot\.android_dt_dir=[^ ]+' /proc/cmdline | cut -d "=" -f2)
 if [ -z "$android_dt_dir" ]; then
     android_dt_dir="/proc/device-tree/firmware/android/"
@@ -149,6 +152,8 @@ if [ "$(tr -d '\0' <${android_dt_dir}/compatible)" = "android,firmware" ] && \
         process_single_fstab_entry "$dev" "$mount_point" "$type" "$mnt_flags"
     done
 fi
+
+fi # disabled
 
 # Now search for file fstab's. /run/first_stage_ramdisk is copied by halium-boot
 # if it detects such directory in the initrd, which indicates that vendor_boot
