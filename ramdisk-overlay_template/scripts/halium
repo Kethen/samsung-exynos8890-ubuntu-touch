@@ -793,7 +793,8 @@ mountroot() {
 		fi
 
 		# Setup the swap device
-		[ -e ${rootmnt}/userdata/SWAP.img ] && swapon ${rootmnt}/userdata/SWAP.img
+		# do that later in ut
+		#[ -e ${rootmnt}/userdata/SWAP.img ] && swapon ${rootmnt}/userdata/SWAP.img
 
 		# Apply customized content
 		for user in ${rootmnt}/userdata/user-data/*; do
