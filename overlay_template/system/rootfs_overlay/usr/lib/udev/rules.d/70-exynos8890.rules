@@ -152,7 +152,3 @@ ACTION=="add", KERNEL=="vndbinder", OWNER="root", GROUP="root", MODE="0666"
 ACTION=="add", KERNEL=="anbox-binder", OWNER="root", GROUP="root", MODE="0666"
 ACTION=="add", KERNEL=="anbox-hwbinder", OWNER="root", GROUP="root", MODE="0666"
 ACTION=="add", KERNEL=="anbox-vndbinder", OWNER="root", GROUP="root", MODE="0666"
-
-# autosleep tune
-DEVPATH=="/devices/battery/power_supply/battery", ENV{POWER_SUPPLY_STATUS}=="Discharging", RUN+="/usr/sbin/autosleep_delay_set.sh discharging"
-DEVPATH=="/devices/battery/power_supply/battery", ENV{POWER_SUPPLY_STATUS}!="Discharging", RUN+="/usr/sbin/autosleep_delay_set.sh charging"
