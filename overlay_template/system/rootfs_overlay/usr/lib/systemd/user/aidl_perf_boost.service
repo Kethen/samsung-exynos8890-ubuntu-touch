@@ -1,5 +1,5 @@
 [Unit]
-Description=send boot pulses to cpu scheduler on user input
+Description=power manager that informs aidl powerhal of different states, optionally also manages network power saving
 
 [Service]
 Restart=always

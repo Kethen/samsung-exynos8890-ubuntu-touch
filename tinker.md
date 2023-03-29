@@ -19,6 +19,10 @@ To always stay in `LOW_POWER` mode, create an empty file at `/home/phablet/.conf
 
 Slightly dangerous, but advanced users can also adjust power hints at `/home/phablet/.config/powerhint.json` then reboot.
 
+Optionally network power saving can be enabled, which only allows internet to be on for 15 seconds every 2 minutes when screen is off. It can detect whether hotspot is on reliably, but it cannot tell whether any applications need active background internet connection without a proper wakelock like interface on ut itself.
+
+To enable network power saving, create an empty file at `/home/phablet/.config/network_power_saving`, one can do that in terminal with `touch /home/phablet/.config/network_power_saving`. The change is applied the next screen off.
+
 ### Anti Flicker
 
 On heroxlte, Ivan included https://forum.xda-developers.com/t/kernel-g935-amoled-pwm-flicker-free.3517739/ into his kernel, which is in turn used as a base for the ubuntu touch kernel. To enable anti flicker/flicker free, create an empty file at `/home/phablet/.config/anti_flicker` then reboot, one can do that in terminal with `touch /home/phablet/.config/anti_flicker; sudo reboot`.

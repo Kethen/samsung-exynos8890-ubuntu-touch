@@ -5,7 +5,9 @@ from gi.repository import GLib
 import subprocess
 import gbinder
 import time
-from threading import Thread
+from threading import Thread, Lock
+
+import nm_wifi_cellular as nm
 
 match_string = "type='signal',member='Changed',interface='org.gtk.Actions',path='/org/ayatana/indicator/power'"
 
@@ -33,6 +35,15 @@ boost_enum_interaction = 0
 first_boot_check_file = "/tmp/aidl_perf_boost_booted"
 
 power_saving_toggle_file = "/home/phablet/.config/power_saving"
+network_power_saving_toggle_file = "/home/phablet/.config/network_power_saving"
+
+def is_network_power_saving():
+	try:
+		f = open(network_power_saving_toggle_file, "r")
+		f.close()
+		return True
+	except:
+		return False
 
 def is_power_saving():
 	try:
@@ -54,6 +65,71 @@ def is_first_boot():
 			f = open(first_boot_check_file, "w")
 			f.close()
 	return first_boot_state
+
+restore_id = 0
+restore_id_lock = Lock()
+state = None
+def disable_network():
+	nm.toggle_wifi(False)
+	nm.toggle_cellular_data(False)
+
+def restore_network_state():
+	global state
+	if state is None:
+		return
+	if state["wifi"]:
+		nm.toggle_wifi(True)
+	if state["cellular"]:
+		nm.toggle_cellular_data(True)
+
+def network_power_saving_thread(assigned_restore_id):
+	online_time_sec = 15
+	offline_time_sec = 120
+	global restore_id
+	if restore_id != assigned_restore_id:
+		return
+	while True:
+		time.sleep(online_time_sec)
+		restore_id_lock.acquire()
+		if restore_id != assigned_restore_id:
+			restore_id_lock.release()
+			#print("exiting power saving thread")
+			return
+		#print("power saving thread disabling networking")
+		disable_network()
+		restore_id_lock.release()
+
+		time.sleep(offline_time_sec)
+		restore_id_lock.acquire()
+		if restore_id != assigned_restore_id:
+			restore_id_lock.release()
+			#print("exiting power saving thread")
+			return
+		#print("power saving thread restoring network state")
+		restore_network_state()
+		restore_id_lock.release()
+
+def start_network_power_saving():
+	global restore_id
+	global state
+	if nm.is_hotspot_mode():
+		return
+	# if it goes in and out of interactive more than 3600 times it actually breaks
+	restore_id_lock.acquire()
+	restore_id = (restore_id + 1) % 3600
+	state = {"wifi": nm.is_wifi_on(), "cellular": nm.is_cellular_data_on()}
+	t = Thread(target = network_power_saving_thread, args = [restore_id])
+	t.start()
+	restore_id_lock.release()
+
+def stop_network_power_saving():
+	global restore_id
+	restore_id_lock.acquire()
+	restore_id = (restore_id + 1) % 3600
+	restore_network_state()
+	restore_id_lock.release()
+	global state
+	state = None
 
 def set_mode(client, type_enum, enable):
 	if enable:
@@ -88,6 +164,7 @@ def set_interactive(is_interactive):
 	if is_interactive != was_interactive:
 		was_interactive = is_interactive
 		power_saving = is_power_saving()
+		network_power_saving = is_network_power_saving()
 
 		if is_interactive:
 			# this is supposed to be triggered by android wm for various animations, instead of on screen-on
@@ -100,6 +177,12 @@ def set_interactive(is_interactive):
 		# given the way UT renders currently it helps with the UI, seems to help scrolling in morph browser as well
 		set_mode(client, mode_enum_expensive_rendering, is_interactive and (not power_saving))
 		set_mode(client, mode_enum_low_power, (not is_interactive) or power_saving)
+
+		if network_power_saving and (not is_interactive):
+			start_network_power_saving()
+		else:
+			stop_network_power_saving()
+
 
 	#if is_interactive:
 	#	p = subprocess.run(['/usr/bin/getprop', '8890.interactive_big_cores'], stdout=subprocess.PIPE)
