@@ -1,15 +1,14 @@
 #!/usr/bin/python3
-import dbus
-from dbus.mainloop.glib import DBusGMainLoop
 from gi.repository import GLib
+from dbus.mainloop.glib import DBusGMainLoop
+import dbus
 import subprocess
 import gbinder
 import time
-from threading import Thread, Lock
 
 import nm_wifi_cellular as nm
-
-match_string = "type='signal',member='Changed',interface='org.gtk.Actions',path='/org/ayatana/indicator/power'"
+import repowerd
+import lsc
 
 #small_core_io_busy = open('/sys/devices/system/cpu/cpu0/cpufreq/interactive/io_is_busy', "w")
 #big_core_io_busy = open('/sys/devices/system/cpu/cpu4/cpufreq/interactive/io_is_busy', "w")
@@ -36,6 +35,17 @@ first_boot_check_file = "/tmp/aidl_perf_boost_booted"
 
 power_saving_toggle_file = "/home/phablet/.config/power_saving"
 network_power_saving_toggle_file = "/home/phablet/.config/network_power_saving"
+
+network_power_saving_online_time_sec = 30
+network_power_saving_offline_time_sec = 120
+
+log_file_path = "/tmp/perf_boost_log"
+#log_file = open(log_file_path, "w")
+
+def log(message):
+	#log_file.write("{0}\n".format(message))
+	#log_file.flush()
+	pass
 
 def is_network_power_saving():
 	try:
@@ -66,9 +76,10 @@ def is_first_boot():
 			f.close()
 	return first_boot_state
 
-restore_id = 0
-restore_id_lock = Lock()
+wake_cookie = None
 state = None
+is_offline = None
+sleep_till = None
 def disable_network():
 	nm.toggle_wifi(False)
 	nm.toggle_cellular_data(False)
@@ -82,54 +93,52 @@ def restore_network_state():
 	if state["cellular"]:
 		nm.toggle_cellular_data(True)
 
-def network_power_saving_thread(assigned_restore_id):
-	online_time_sec = 15
-	offline_time_sec = 120
-	global restore_id
-	if restore_id != assigned_restore_id:
-		return
-	while True:
-		time.sleep(online_time_sec)
-		restore_id_lock.acquire()
-		if restore_id != assigned_restore_id:
-			restore_id_lock.release()
-			#print("exiting power saving thread")
-			return
-		#print("power saving thread disabling networking")
-		disable_network()
-		restore_id_lock.release()
+def network_power_saving_wakeup_cb():
+	global wake_cookie
+	global is_offline
+	global sleep_till
 
-		time.sleep(offline_time_sec)
-		restore_id_lock.acquire()
-		if restore_id != assigned_restore_id:
-			restore_id_lock.release()
-			#print("exiting power saving thread")
-			return
-		#print("power saving thread restoring network state")
+	if (wake_cookie is None) or (state is None):
+		return
+
+	repowerd.clearWakeup(wake_cookie)
+
+	if sleep_till is not None and time.time() < sleep_till - 2:
+		log("early wakeup, now: {0}, sleep_till: {1}".format(int(time.time()), sleep_till))
+		wake_cookie = repowerd.requestWakeup("network powersaving reentry", sleep_till)
+		return
+
+	next_wake_delay = network_power_saving_online_time_sec
+	if is_offline:
 		restore_network_state()
-		restore_id_lock.release()
+	else:
+		next_wake_delay = network_power_saving_offline_time_sec
+		disable_network()
+	is_offline = not is_offline
+
+	sleep_till = int(time.time() + next_wake_delay)
+	log("now: {0}, sleep_till: {1}".format(int(time.time()), sleep_till))
+	wake_cookie = repowerd.requestWakeup("network powersaving", sleep_till)
 
 def start_network_power_saving():
-	global restore_id
 	global state
+	global is_offline
+	global sleep_till
+	global wake_cookie
 	if nm.is_hotspot_mode():
 		return
-	# if it goes in and out of interactive more than 3600 times it actually breaks
-	restore_id_lock.acquire()
-	restore_id = (restore_id + 1) % 3600
 	state = {"wifi": nm.is_wifi_on(), "cellular": nm.is_cellular_data_on()}
-	t = Thread(target = network_power_saving_thread, args = [restore_id])
-	t.start()
-	restore_id_lock.release()
+	is_offline = False
+	sleep_till = int(time.time() + network_power_saving_online_time_sec)
+	log("now: {0}, sleep_till: {1}".format(int(time.time()), sleep_till))
+	wake_cookie = repowerd.requestWakeup("network powersaving", sleep_till)
 
 def stop_network_power_saving():
-	global restore_id
-	restore_id_lock.acquire()
-	restore_id = (restore_id + 1) % 3600
-	restore_network_state()
-	restore_id_lock.release()
 	global state
+	restore_network_state()
 	state = None
+	if wake_cookie is not None:
+		repowerd.clearWakeup(wake_cookie)
 
 def set_mode(client, type_enum, enable):
 	if enable:
@@ -199,17 +208,6 @@ def set_interactive(is_interactive):
 	#big_core_io_busy.write(io_active)
 	#core_count.write(cores)
 
-def filter_cb(bus, message):
-	arg_list = message.get_args_list()
-	for item in arg_list:
-		if isinstance(item, dict):
-			if 'brightness' in item:
-				brightness = item['brightness']
-				if brightness < 0:
-					set_interactive(False)
-				else:
-					set_interactive(True)
-
 sm = gbinder.ServiceManager(binder_interface)
 intf = sm.list_sync();
 
@@ -226,11 +224,17 @@ if service is None:
 print("binder is ready")
 
 DBusGMainLoop(set_as_default=True)
+bus = dbus.SystemBus()
+print("initializing nm dbus")
+nm.init(bus)
+print("initializing repowerd dbus")
+repowerd.register_wakeup_cb(network_power_saving_wakeup_cb)
+repowerd.init(bus)
+print("initializing lsc dbus")
+lsc.register_has_active_output_cb(set_interactive)
+lsc.init(bus)
 
-bus = dbus.SessionBus()
-bus.add_match_string(match_string)
-bus.add_message_filter(filter_cb)
-
+print("applying initial state")
 set_interactive(is_first_boot())
 
 print("starting glib loop")

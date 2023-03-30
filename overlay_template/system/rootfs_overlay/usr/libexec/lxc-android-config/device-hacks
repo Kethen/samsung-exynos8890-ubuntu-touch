@@ -25,11 +25,11 @@ bash /usr/libexec/lxc-android-config/device-hacks.d/zram.sh
 
 bash /usr/libexec/lxc-android-config/device-hacks.d/swap.sh
 
-bash /usr/libexec/lxc-android-config/device-hacks.d/anti_flicker.sh
-
 bash /usr/libexec/lxc-android-config/device-hacks.d/flashlight_permission.sh
 
 bash /usr/libexec/lxc-android-config/device-hacks.d/waydroid_register_gps.sh
 
-echo "=== lxc android is ready and hacks has been applied ===" > /dev/kmsg
+bash /usr/libexec/lxc-android-config/device-hacks.d/wait_for_lighthal.sh
+
+echo "=== lxc android is ready and hacks have been applied ===" > /dev/kmsg
 #bash /usr/libexec/lxc-android-config/device-hacks.d/debug_ssh.sh

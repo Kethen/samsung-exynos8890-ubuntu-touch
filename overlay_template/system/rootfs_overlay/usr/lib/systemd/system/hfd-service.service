@@ -1,0 +1,13 @@
+[Unit]
+Description=HFD system service
+Documentation=https://gitlab.com/ubports/core/hfd-service/
+After=device-hacks.service
+
+[Service]
+Type=dbus
+BusName=com.lomiri.hfd
+ExecStart=/usr/libexec/hfd-service
+Restart=on-failure
+
+[Install]
+WantedBy=default.target

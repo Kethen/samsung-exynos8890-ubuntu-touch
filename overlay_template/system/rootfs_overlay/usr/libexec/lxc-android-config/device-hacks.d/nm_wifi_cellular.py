@@ -1,23 +1,34 @@
-import dbus
+import dbus, time
 
-bus = dbus.SystemBus()
 
 wifi_interface_name = "wlan0"
+nm_object = None
+nm_interface = None
+nm_props_interface = None
+nm_service_name = "org.freedesktop.NetworkManager"
+
+bus = None
 
 tries = 0
-while True:
-	try:
-		nm_service_name = "org.freedesktop.NetworkManager"
-		nm_object = bus.get_object(nm_service_name, "/org/freedesktop/NetworkManager")
-		nm_interface = dbus.Interface(nm_object, "org.freedesktop.NetworkManager")
-		nm_props_interface = dbus.Interface(nm_object, "org.freedesktop.DBus.Properties")
-		break
-	except Exception as e:
-		print(e)
-		tries = tries + 1
-		if tries > 20:
-			raise Exception("could not connect to network manager through dbus")
-		continue
+def init(in_bus):
+	global bus
+	global nm_object
+	global nm_interface
+	global nm_props_interface
+	bus = in_bus
+	while True:
+		try:
+			nm_object = bus.get_object(nm_service_name, "/org/freedesktop/NetworkManager")
+			nm_interface = dbus.Interface(nm_object, "org.freedesktop.NetworkManager")
+			nm_props_interface = dbus.Interface(nm_object, "org.freedesktop.DBus.Properties")
+			break
+		except Exception as e:
+			print(e)
+			tries = tries + 1
+			time.sleep(1)
+			if tries > 20:
+				raise Exception("could not connect to network manager through dbus")
+			continue
 
 def is_hotspot_mode():
 	try:
@@ -58,7 +69,8 @@ def get_active_cellular_connection():
 			if connection_prop_interface.Get("org.freedesktop.NetworkManager.Connection.Active", "Type") == "gsm":
 				return connection_path
 		return None
-	except:
+	except Exception as e:
+		print(e)
 		return None
 
 def is_cellular_data_on():

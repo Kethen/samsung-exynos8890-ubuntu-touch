@@ -1,0 +1,8 @@
+[Unit]
+Description=toggle panel anti flicker
+
+[Service]
+Restart=always
+ExecStart=/usr/bin/python3 /usr/libexec/lxc-android-config/device-hacks.d/anti_flicker.py
+
+
