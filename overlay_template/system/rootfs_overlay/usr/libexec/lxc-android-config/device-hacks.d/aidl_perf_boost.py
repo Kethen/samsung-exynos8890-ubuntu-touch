@@ -39,13 +39,27 @@ network_power_saving_toggle_file = "/home/phablet/.config/network_power_saving"
 network_power_saving_online_time_sec = 30
 network_power_saving_offline_time_sec = 120
 
-log_file_path = "/tmp/perf_boost_log"
-#log_file = open(log_file_path, "w")
+log_file_path = "/home/phablet/.cache/aidl_perf_boost_log"
+log_file = open(log_file_path, "w")
 
 def log(message):
-	#log_file.write("{0}\n".format(message))
-	#log_file.flush()
+	#print("{0}: {1}".format(time.ctime(time.time()), message))
+	log_file.write("{0}: {1}\n".format(time.ctime(time.time()), message))
+	log_file.flush()
 	pass
+
+def log_nmcli():
+	p = subprocess.run(['/usr/bin/nmcli', 'con', 'show'], stdout=subprocess.PIPE)
+	log_file.write(str(p.stdout, "UTF-8"))
+	log_file.flush()
+	pass
+
+def log_battery_level():
+	f = open("/sys/class/power_supply/battery/capacity", "r")
+	value = f.read()
+	f.close()
+	log_file.write("battery level: {0}".format(value))
+	log_file.flush
 
 def is_network_power_saving():
 	try:
@@ -77,20 +91,22 @@ def is_first_boot():
 	return first_boot_state
 
 wake_cookie = None
-state = None
+network_state = None
 is_offline = None
 sleep_till = None
+
 def disable_network():
+	log_nmcli()
 	nm.toggle_wifi(False)
 	nm.toggle_cellular_data(False)
 
 def restore_network_state():
-	global state
-	if state is None:
+	log_nmcli()
+	if network_state is None:
 		return
-	if state["wifi"]:
+	if network_state["wifi"]:
 		nm.toggle_wifi(True)
-	if state["cellular"]:
+	if network_state["cellular"]:
 		nm.toggle_cellular_data(True)
 
 def network_power_saving_wakeup_cb():
@@ -98,7 +114,12 @@ def network_power_saving_wakeup_cb():
 	global is_offline
 	global sleep_till
 
-	if (wake_cookie is None) or (state is None):
+	if wake_cookie is None:
+		log("entering wakeup cb without wakeup_cookie, dropping event")
+		return
+
+	if network_state is None:
+		log("entering wakeup cb without network_state, dropping event")
 		return
 
 	repowerd.clearWakeup(wake_cookie)
@@ -110,35 +131,49 @@ def network_power_saving_wakeup_cb():
 
 	next_wake_delay = network_power_saving_online_time_sec
 	if is_offline:
+		log("restoring network state")
 		restore_network_state()
+		is_offline = False
 	else:
-		next_wake_delay = network_power_saving_offline_time_sec
-		disable_network()
-	is_offline = not is_offline
+		if not repowerd.daemonHasActiveWakelock():
+			next_wake_delay = network_power_saving_offline_time_sec
+			log("disabling networking")
+			disable_network()
+			is_offline = True
+		else:
+			log("system has an active wake lock active, not disabling networking this time")
 
 	sleep_till = int(time.time() + next_wake_delay)
 	log("now: {0}, sleep_till: {1}".format(int(time.time()), sleep_till))
 	wake_cookie = repowerd.requestWakeup("network powersaving", sleep_till)
 
 def start_network_power_saving():
-	global state
+	global network_state
 	global is_offline
 	global sleep_till
 	global wake_cookie
+	if wake_cookie is not None:
+		repowerd.clearWakeup(wake_cookie)
 	if nm.is_hotspot_mode():
 		return
-	state = {"wifi": nm.is_wifi_on(), "cellular": nm.is_cellular_data_on()}
+	network_state = {"wifi": nm.is_wifi_on(), "cellular": nm.is_cellular_data_on()}
 	is_offline = False
 	sleep_till = int(time.time() + network_power_saving_online_time_sec)
+	log("entering network powersaving")
+	log_battery_level()
 	log("now: {0}, sleep_till: {1}".format(int(time.time()), sleep_till))
 	wake_cookie = repowerd.requestWakeup("network powersaving", sleep_till)
 
 def stop_network_power_saving():
-	global state
-	restore_network_state()
-	state = None
+	global network_state
 	if wake_cookie is not None:
 		repowerd.clearWakeup(wake_cookie)
+	log("exiting network powersaving")
+	log_battery_level()
+	log("restoring network state")
+	restore_network_state()
+	network_state = None
+
 
 def set_mode(client, type_enum, enable):
 	if enable:
@@ -221,23 +256,23 @@ while service is None and tries < 20:
 if service is None:
 	raise Exception("failed oepning {0}".format(service_name))
 
-print("binder is ready")
+log("binder is ready")
 
 DBusGMainLoop(set_as_default=True)
 bus = dbus.SystemBus()
-print("initializing nm dbus")
-nm.init(bus)
-print("initializing repowerd dbus")
+log("initializing nm dbus")
+nm.init(bus, log, "wlan0")
+log("initializing repowerd dbus")
 repowerd.register_wakeup_cb(network_power_saving_wakeup_cb)
-repowerd.init(bus)
-print("initializing lsc dbus")
+repowerd.init(bus, log)
+log("initializing lsc dbus")
 lsc.register_has_active_output_cb(set_interactive)
-lsc.init(bus)
+lsc.init(bus, log)
 
-print("applying initial state")
+log("applying initial state")
 set_interactive(is_first_boot())
 
-print("starting glib loop")
+log("starting glib loop")
 loop = GLib.MainLoop()
 loop.run()
 

@@ -5,8 +5,13 @@ import dbus
 
 import lsc
 
+import time
+
 sysfs_path = "/sys/class/lcd/panel/smart_on"
 toggle_file = "/home/phablet/.config/anti_flicker"
+
+def log(message):
+	print(message)
 
 def is_gracerlte():
 	try:
@@ -18,7 +23,7 @@ def is_gracerlte():
 				return match.group(1) == "gracerlte"
 		return False
 	except Exception as e:
-		print(e)
+		log(e)
 		return False
 
 def anti_flicker_enabled():
@@ -58,7 +63,7 @@ if not is_gracerlte():
 	lsc.register_has_active_output_cb(screen_on_cb)
 	DBusGMainLoop(set_as_default=True)
 	bus = dbus.SystemBus()
-	lsc.init(bus)
+	lsc.init(bus, log)
 else:
 	print("device is gracerlte, doing nothing")
 

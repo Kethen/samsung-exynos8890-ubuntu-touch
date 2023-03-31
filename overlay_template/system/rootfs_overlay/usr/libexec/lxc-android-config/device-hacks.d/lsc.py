@@ -2,10 +2,13 @@ import time, dbus
 
 lsc_object = None
 lsc_prop_interface = None
-def init(bus):
+logcb = None
+def init(bus, log):
 	tries = 0
 	global lsc_object
 	global lsc_prop_interface
+	global logcb
+	logcb = log
 	while True:
 		try:
 			lsc_object = bus.get_object("com.lomiri.SystemCompositor.Display", "/com/lomiri/SystemCompositor/Display")
@@ -13,7 +16,7 @@ def init(bus):
 			lsc_object.connect_to_signal("PropertiesChanged", active_output_cb, "org.freedesktop.DBus.Properties")
 			break
 		except Exception as e:
-			print(e)
+			logcb(e)
 			time.sleep(1)
 			tries = tries + 1
 			if tries > 20:

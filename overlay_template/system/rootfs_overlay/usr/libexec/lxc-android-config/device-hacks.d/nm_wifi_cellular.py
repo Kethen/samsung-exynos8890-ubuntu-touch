@@ -8,14 +8,19 @@ nm_props_interface = None
 nm_service_name = "org.freedesktop.NetworkManager"
 
 bus = None
+log_cb = None
 
 tries = 0
-def init(in_bus):
+def init(in_bus, log, wifi_interface):
 	global bus
+	global log_cb
 	global nm_object
 	global nm_interface
 	global nm_props_interface
+	global wifi_interface_name
 	bus = in_bus
+	log_cb = log
+	wifi_interface_name = wifi_interface
 	while True:
 		try:
 			nm_object = bus.get_object(nm_service_name, "/org/freedesktop/NetworkManager")
@@ -23,7 +28,7 @@ def init(in_bus):
 			nm_props_interface = dbus.Interface(nm_object, "org.freedesktop.DBus.Properties")
 			break
 		except Exception as e:
-			print(e)
+			log_cb(e)
 			tries = tries + 1
 			time.sleep(1)
 			if tries > 20:
@@ -41,7 +46,7 @@ def is_hotspot_mode():
 
 		return iface_mode == 3
 	except Exception as e:
-		print(e)
+		log_cb(e)
 		return False
 
 def is_wifi_on():
@@ -49,7 +54,7 @@ def is_wifi_on():
 		wifi_on = nm_props_interface.Get("org.freedesktop.NetworkManager", "WirelessEnabled")
 		return wifi_on == 1
 	except Exception as e:
-		print(e)
+		log_cb(e)
 		return False
 
 def toggle_wifi(enabled):
@@ -57,7 +62,7 @@ def toggle_wifi(enabled):
 		nm_props_interface.Set("org.freedesktop.NetworkManager", "WirelessEnabled", enabled)
 		return True
 	except Exception as e:
-		print(e)
+		log_cb(e)
 		return False
 
 def get_active_cellular_connection():
@@ -70,7 +75,7 @@ def get_active_cellular_connection():
 				return connection_path
 		return None
 	except Exception as e:
-		print(e)
+		log_cb(e)
 		return None
 
 def is_cellular_data_on():
@@ -102,5 +107,5 @@ def toggle_cellular_data(enable):
 							return True
 			return False
 	except Exception as e:
-		print(e)
+		log_cb(e)
 		return False
