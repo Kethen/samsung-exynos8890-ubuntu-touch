@@ -1,4 +1,6 @@
 import dbus, time
+from dbus.mainloop.glib import DBusGMainLoop
+from gi.repository import GLib
 
 repowerd_object = None
 repowerd_interface = None
@@ -7,16 +9,24 @@ unity_screen_object = None
 unity_screen_interface = None
 
 log_cb = None
+bus = None
 
-def init(bus, log):
+first_run = True
+def init(in_bus, log):
 	global repowerd_object
 	global repowerd_interface
 	global repowerd_prop_interface
 	global unity_screen_object
 	global unity_screen_interface
 	global log_cb
+	global bus
+	global first_run
 	log_cb = log
+	bus = in_bus
 	tries = 0
+	if first_run:
+		setup_name_change_handler()
+		first_run = False
 	while True:
 		try:
 			repowerd_service_name = "com.lomiri.Repowerd"
@@ -116,6 +126,7 @@ def daemonHasActiveWakelock():
 
 wakeup_cb = None
 def wakeup_cb_wrapper(*arg, **karg):
+	log_cb("wakeup_cb_wrapper reached")
 	if wakeup_cb is not None:
 		wakeup_cb()
 
@@ -123,13 +134,41 @@ def register_wakeup_cb(cb):
 	global wakeup_cb
 	wakeup_cb = cb
 
+unity_screen_active = False
+repowerd_active = False
+repowerd_settings_active = False
+def name_change_handler(*arg, **karg):
+	global unity_screen_active
+	global repowerd_active
+	global repowerd_settings_active
+	active = arg[2] != ""
+	changed = False
+	if arg[0] == "com.lomiri.Repowerd":
+		repowerd_active = active
+		changed = True
+	if arg[0] == "com.lomiri.Repowerd.Settings":
+		repowerd_settings_active = active
+		changed = True
+	if arg[0] == "com.canonical.Unity.Screen":
+		unity_screen_active = active
+		changed = True
+	if unity_screen_active and repowerd_active and repowerd_settings_active and changed:
+		log_cb("repowerd restart detected, re-init")
+		init(bus, log_cb)
+
+def setup_name_change_handler():
+	dbus_service_name = "org.freedesktop.DBus"
+	dbus_object = bus.get_object(dbus_service_name, "/org/freedesktop/DBus")
+	dbus_object.connect_to_signal("NameOwnerChanged", name_change_handler, "org.freedesktop.DBus")
+
 def main_log(message):
 	print(message)
 
 def main():
-	bus = dbus.SystemBus()
+	DBusGMainLoop(set_as_default=True)
+	new_bus = dbus.SystemBus()
 	try:
-		init(bus, main_log)
+		init(new_bus, main_log)
 	except Exception as e:
 		print(e)
 
@@ -147,30 +186,33 @@ def main():
 		display_on_cookies.append(cookie)
 		setScreenPowerMode("on", enum_reason_notification)
 
-	time.sleep(5)
+	time.sleep(1)
 
 	print(daemonHasActiveWakelock())
 
 	for cookie in wake_cookies:
 		print("releasing wakelock with cookie {0}".format(cookie))
 		clearWakelock(cookie)
-		time.sleep(5)
+		time.sleep(1)
 
 	print(daemonHasActiveWakelock())
 
 	for cookie in display_on_cookies:
 		print("releasing display on with cookie {0}".format(cookie))
 		clearDisplayOn(cookie)
-		time.sleep(5)
+		time.sleep(1)
 
 	print(daemonHasActiveWakelock())
 
 	for f in range(0,3):
 		print("releasing notifications")
 		setScreenPowerMode("off", enum_reason_snap_decision)
-		time.sleep(5)
+		time.sleep(1)
 
 	print(daemonHasActiveWakelock())
+
+	loop = GLib.MainLoop()
+	loop.run()
 
 if __name__ == "__main__":
 	main()
