@@ -1,5 +1,5 @@
 gracerlte:
-  PrettyName: Samsung Galaxy Note FE/7
+  PrettyName: Samsung Galaxy Note FE
   DeviceType: phone
   DoubleTapToWake:
     - /sys/class/sec/tsp/cmd_ut_aod_enable|1|0
