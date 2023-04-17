@@ -27,18 +27,16 @@ https://github.com/00p513-dev
 	- when cfg80211_disconnected is triggered on the driver side, wifi would stop working until a radio restart from userspace
 	- some how reason 32771 is presented to iw on nl80211 during cfg80211_disconnected, but reason 1 ("Unspecified") was issued on the driver
 	- cfg80211_disconnected might have never been triggered on xenial due to working periodic re-scan on NetworkManager
-- flashlight is currently not working on focal https://gitlab.com/ubports/development/core/packaging/ayatana-indicators/ayatana-indicator-power/-/issues/5
-- while bluebinder + 3.18 bt stack has issues, bluetooth seems to work best with the 4.2 bluetooh stack, however:
-	- full power off has to be disabled for it to play well with the uart hci, hopefully the wifi chip itself takes the power down command well
+- while bluebinder + 3.18 bt stack has issues, bluetooth seems to work best with the 4.2 bluetooh stack + hciattach, however:
 	- hciattach can't set a macaddress at all with this chip, so the macaddress from /efs cannot be applied, while the chip has a built-in mac address
+	- full power off should be working now, with the caveat that bluetooth takes a few seconds to start, especially right after turning the device on
+	- debugging why bluebinder is not happy with the generic bcm bt hal might be a way to fix the above issues
 - swlan0 is disabled to not confuse NetworkManager, but that means no wifi tethering while wifi is connected, wlan0 is used to do both
 - fingetprint sensor should work, but only tested on /dev/vfsspi(viper), not /dev/esfp0(egis), I don't have a s7 with egis fingerprint sensor to test with
-- camcorder audio desync, likely an issue that should be fixed on ubport itself however, https://gitlab.com/ubports/development/core/qtubuntu-camera/-/issues/22
-	- https://github.com/Halium/hybris-patches/pull/64 should fix it
 
 ### Merge requests that were merged
-- hwc screen size issue https://gitlab.com/ubports/development/core/hybris-support/mir-android2-platform/-/merge_requests/11
-- Color/Pixel format for hardware video decoding  https://github.com/ubports/gst-plugins-bad-packaging/pull/4
+- focal hwc screen size issue https://gitlab.com/ubports/development/core/hybris-support/mir-android2-platform/-/merge_requests/11
+- Color/Pixel format for hardware video decoding https://github.com/ubports/gst-plugins-bad-packaging/pull/4
 - halium-generic-adaptation-build-tools https://gitlab.com/ubports/porting/community-ports/halium-generic-adaptation-build-tools/-/merge_requests/2
 - audio routing with pulse https://github.com/ubports/pulseaudio-modules-droid-30/pull/1
 
