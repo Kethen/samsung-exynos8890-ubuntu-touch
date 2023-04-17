@@ -4,14 +4,13 @@ import time
 import re
 import pathlib
 
-
 def btchip_toggle(on):
 	if on:
 		command = "unblock"
 	else:
 		command = "block"
 	subprocess.run(["rfkill", command, "bluetooth"])
-	time.sleep(0.5)
+	time.sleep(1)
 
 # could this cause race condition..?
 hciattach_on = False
@@ -23,15 +22,21 @@ rfkill_ignore_lock = threading.Lock()
 
 hciattach_args = ["hciattach", "-n", "-f", "/vendor/firmware", "ttySAC1", "bcm43xx"]
 
-launch_attempts = 0;
+bt_rfkill_state_file = "/userdata/bt_was_off"
+
+launch_attempts = 1;
 launch_attempts_lock = threading.Lock()
 def hciattach_watchdog_thread():
 	global rfkill_ignore
 	global hciattach_process
 	global launch_attempts
-	restart_bt = True
+	global hciattach_on
+	restart_bt = False
+	if hciattach_process is not None:
+		ret = hciattach_process.wait()
 	while True:
 		hciattach_process_lock.acquire()
+		print("hciattach_on: {0}".format(hciattach_on))
 		if hciattach_on == False:
 			print("stopping hciattach watchdog thread")
 			hciattach_process_lock.release()
@@ -59,13 +64,17 @@ def hciattach_watchdog_thread():
 def start_hciattach():
 	global hciattach_on
 	global launch_attempts
+	global hciattach_process
 	launch_attempts = 0
 	stop_hciattach()
 	hciattach_process_lock.acquire()
 	hciattach_on = True
+	hciattach_process = subprocess.Popen(hciattach_args)
+	hciattach_process_lock.release()
 	thread = threading.Thread(target=hciattach_watchdog_thread)
 	thread.start()
-	hciattach_process_lock.release()
+	bt_rfkill_state = pathlib.Path(bt_rfkill_state_file)
+	bt_rfkill_state.unlink(missing_ok=True)
 
 def stop_hciattach():
 	global hciattach_process
@@ -79,6 +88,8 @@ def stop_hciattach():
 	hciattach_process = None
 	hciattach_on = False
 	hciattach_process_lock.release()
+	bt_rfkill_state = pathlib.Path(bt_rfkill_state_file)
+	bt_rfkill_state.touch()
 
 rfkill_id = None
 for p in pathlib.Path("/sys/class/rfkill/").iterdir():
@@ -99,47 +110,37 @@ f = open(soft_path, "r")
 launch_state = f.read()
 f.close()
 
-first_boot_detect_file = pathlib.Path("/tmp/hciattach_manager_boost_booted")
+first_boot_detect_file = pathlib.Path("/tmp/hciattach_manager_booted")
 first_boot = False
 if not first_boot_detect_file.exists():
-	f = open(first_boot_detect_file, "w")
-	f.close()
+	first_boot_detect_file.touch()
 	first_boot = True
 
-first_boot_watchdog_active = True
-def first_boot_watchdog():
-	global launch_attempts
-	print("started first boot watchdog, waiting for 60 seconds")
-	time.sleep(60)
-	if first_boot_watchdog_active:
-		print("oh no, didn't manage to train bt, expect slow start")
-		launch_attempts_lock.acquire()
-		launch_attempts = 2
-		launch_attempts_lock.release()
-	print("ending first boot watchdog")
+was_activated = True
+bt_rfkill_state = pathlib.Path(bt_rfkill_state_file)
+if bt_rfkill_state.exists():
+	was_activated = False
 
+print("bt rfkill is currently {0}".format(launch_state))
 if first_boot:
-	print("training the bt chip")
-	start_hciattach()
-	t = threading.Thread(target=first_boot_watchdog)
-	t.start()
-	while True:
-		# this should not really need locking unless real threads are used
-		launch_attempts_lock.acquire()
-		if launch_attempts == 2:
-			launch_attempts_lock.release()
-			# let the firmware flashing finish
-			first_boot_watchdog_active = False
-			time.sleep(10)
-			break
-		launch_attempts_lock.release()
-		time.sleep(1)
-
-	if launch_state == "1\n":
+	print("restoring rfkill state")
+	# give urfkill a brief wait
+	time.sleep(3)
+	if was_activated:
+		print("enabling bt and starting hciattach")
+		btchip_toggle(True)
+		start_hciattach()
+	else:
+		print("starting hciattach once so that it's faster later")
+		btchip_toggle(True)
+		start_hciattach()
+		time.sleep(51)
 		stop_hciattach()
+		print("disabling bt")
 		btchip_toggle(False)
 else:
 	if launch_state == "0\n":
+		print("managed started with bt unblocked, starting hciattach")
 		start_hciattach()
 
 udev_monitor_process = subprocess.Popen(["udevadm", "monitor", "-k", "-s", "rfkill"], stdout=subprocess.PIPE)

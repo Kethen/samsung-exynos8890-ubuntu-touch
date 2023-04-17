@@ -766,6 +766,11 @@ mountroot() {
 		mount -o bind /dev/null ${rootmnt}/android/vendor/etc/fstab.samsungexynos8890
 		mount -o bind /dev/null ${rootmnt}/android/vendor/etc/fstab.samsungexynos8890.sd
 
+		# disable rfkill restoration for bluetooth, keep bt down as driver does and let hciattach manager handle restoration
+		# systemd-rfkill and urfkill...
+		sed -i '/\[BLUETOOTH\]/!b;n;csoft=true' ${rootmnt}/userdata/system-data/var/lib/urfkill/saved-states
+		echo 1 > ${rootmnt}/userdata/system-data/var/lib/systemd/rfkill/platform-bluetooth\:bluetooth
+
 		# system is a special case
 		tell_kmsg "moving Android system to /android/system"
 		mount --move /android-system ${rootmnt}/android/system

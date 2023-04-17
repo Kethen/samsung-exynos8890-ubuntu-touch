@@ -1,6 +1,6 @@
 [Unit]
 Description=start/stop hciattach while monitoring rfkill status
-After=urfkill.service systemd-udevd.service
+After=systemd-udevd.service urfkill.service
 
 [Service]
 Environment=PYTHONUNBUFFERED=1
