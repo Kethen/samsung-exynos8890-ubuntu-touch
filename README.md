@@ -27,10 +27,8 @@ https://github.com/00p513-dev
 	- when cfg80211_disconnected is triggered on the driver side, wifi would stop working until a radio restart from userspace
 	- some how reason 32771 is presented to iw on nl80211 during cfg80211_disconnected, but reason 1 ("Unspecified") was issued on the driver
 	- cfg80211_disconnected might have never been triggered on xenial due to working periodic re-scan on NetworkManager
-- while bluebinder + 3.18 bt stack has issues, bluetooth seems to work best with the 4.2 bluetooh stack + hciattach, however:
-	- hciattach can't set a macaddress at all with this chip, so the macaddress from /efs cannot be applied, while the chip has a built-in mac address
-	- full power off should be working now, with the caveat that bluetooth takes a few seconds to start, especially right after turning the device on
-	- debugging why bluebinder is not happy with the generic bcm bt hal might be a way to fix the above issues
+- while bluebinder + 3.18 bt stack has issues, bluetooth seems to work with the 4.2 bluetooh stack + hciattach bcm43xx with the help of a few workarounds
+	- it might be worth to one day debug why bluebinder is not happy with the generic bcm bt hal from aosp
 - swlan0 is disabled to not confuse NetworkManager, but that means no wifi tethering while wifi is connected, wlan0 is used to do both
 - fingetprint sensor should work, but only tested on /dev/vfsspi(viper), not /dev/esfp0(egis), I don't have a s7 with egis fingerprint sensor to test with
 
