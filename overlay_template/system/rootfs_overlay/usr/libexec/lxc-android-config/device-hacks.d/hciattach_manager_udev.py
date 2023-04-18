@@ -15,6 +15,7 @@ def first_boot_pre_reset():
 	bytes_written = os.writev(target_tty_fd, [reset_command])
 	print("wrote {0} to {1}, {2} bytes".format(reset_command, tty_path, bytes_written))
 	os.close(target_tty_fd)
+	time.sleep(5)
 
 def btchip_toggle(on):
 	if on:
@@ -145,11 +146,13 @@ if bt_rfkill_state.exists():
 
 if first_boot:
 	print("restoring rfkill state")
-	# give urfkill a brief wait
+	# give urfkill and systemd-rfkill a brief wait
 	time.sleep(3)
 	print("bt rfkill is currently {0}".format(launch_state))
+
 	btchip_toggle(True)
 	first_boot_pre_reset()
+
 	print("starting hciattach after booting")
 	start_hciattach()
 	time.sleep(10)
