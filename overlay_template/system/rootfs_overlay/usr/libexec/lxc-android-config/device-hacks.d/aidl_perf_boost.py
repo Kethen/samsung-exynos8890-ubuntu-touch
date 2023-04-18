@@ -155,8 +155,13 @@ def start_network_power_saving():
 	if wake_cookie is not None:
 		repowerd.clearWakeup(wake_cookie)
 	if nm.is_hotspot_mode():
+		log("not entering network powersaving with active wifi hotspot")
 		return
 	network_state = {"wifi": nm.is_wifi_on(), "cellular": nm.is_cellular_data_on()}
+	if (not network_state["wifi"]) and (not network_state["cellular"]):
+		log("not entering network powersaving since networking is already off")
+		network_state = None
+		return
 	is_offline = False
 	sleep_till = int(time.time() + network_power_saving_online_time_sec)
 	log("entering network powersaving")
