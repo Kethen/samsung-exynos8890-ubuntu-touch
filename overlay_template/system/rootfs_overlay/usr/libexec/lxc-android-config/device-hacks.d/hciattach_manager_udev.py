@@ -3,6 +3,18 @@ import threading
 import time
 import re
 import pathlib
+import os
+
+# the first reset goes into a black hole and has no hci return
+# it confuses hciattach so it has to be done here
+reset_command = bytearray([0x01, 0x03, 0x0C, 0x00])
+tty_path = "/dev/ttySAC1"
+def first_boot_pre_reset():
+	print("resetting bt chip for hciattach")
+	target_tty_fd = os.open(tty_path, os.O_RDWR | os.O_NOCTTY)
+	bytes_written = os.writev(target_tty_fd, [reset_command])
+	print("wrote {0} to {1}, {2} bytes".format(reset_command, tty_path, bytes_written))
+	os.close(target_tty_fd)
 
 def btchip_toggle(on):
 	if on:
@@ -20,7 +32,17 @@ hciattach_process_lock = threading.Lock()
 rfkill_ignore = False;
 rfkill_ignore_lock = threading.Lock()
 
-hciattach_args = ["hciattach", "-n", "-f", "/vendor/firmware", "ttySAC1", "bcm43xx"]
+hciattach_args = ["hciattach", "-n", "-f", "/vendor/firmware", "-t", "20", "ttySAC1", "bcm43xx", "921600", "flow", "nosleep"]
+
+macaddr_file_path = pathlib.Path("/efs/bluetooth/bt_addr")
+if macaddr_file_path.exists():
+	macaddr_file = open(macaddr_file_path, "r")
+	macaddr = macaddr_file.read()
+	macaddr_file.close()
+	print("using macaddress from {0}".format(macaddr_file_path))
+	hciattach_args.append(macaddr)
+else:
+	print("cannot open {0} for macaddress".format(macaddr_file_path))
 
 bt_rfkill_state_file = "/userdata/bt_was_off"
 
@@ -83,7 +105,7 @@ def stop_hciattach():
 		return
 	hciattach_process_lock.acquire()
 	if hciattach_process is not None:
-		hciattach_process.kill()
+		hciattach_process.terminate()
 		hciattach_process.wait()
 	hciattach_process = None
 	hciattach_on = False
@@ -121,26 +143,26 @@ bt_rfkill_state = pathlib.Path(bt_rfkill_state_file)
 if bt_rfkill_state.exists():
 	was_activated = False
 
-print("bt rfkill is currently {0}".format(launch_state))
 if first_boot:
 	print("restoring rfkill state")
 	# give urfkill a brief wait
 	time.sleep(3)
-	if was_activated:
-		print("enabling bt and starting hciattach")
-		btchip_toggle(True)
-		start_hciattach()
-	else:
-		print("starting hciattach once so that it's faster later")
-		btchip_toggle(True)
-		start_hciattach()
-		time.sleep(51)
-		stop_hciattach()
+	print("bt rfkill is currently {0}".format(launch_state))
+	btchip_toggle(True)
+	first_boot_pre_reset()
+	print("starting hciattach after booting")
+	start_hciattach()
+	time.sleep(10)
+	if not was_activated:
 		print("disabling bt")
+		stop_hciattach()
 		btchip_toggle(False)
+	else:
+		print("turning hciattach spawned device on")
+		btchip_toggle(True)
 else:
 	if launch_state == "0\n":
-		print("managed started with bt unblocked, starting hciattach")
+		print("manager started with bt unblocked, starting hciattach")
 		start_hciattach()
 
 udev_monitor_process = subprocess.Popen(["udevadm", "monitor", "-k", "-s", "rfkill"], stdout=subprocess.PIPE)
