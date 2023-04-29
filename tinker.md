@@ -19,7 +19,7 @@ To always stay in `LOW_POWER` mode, create an empty file at `/home/phablet/.conf
 
 Slightly dangerous, but advanced users can also adjust power hints at `/home/phablet/.config/powerhint.json` then reboot.
 
-Optionally network power saving can be enabled, which only allows internet to be on for 30 seconds every 4 and a half minutes when screen is off. It can detect whether hotspot is on reliably, but it cannot tell whether any applications need active background internet connection without a proper wakelock like interface on ut itself (requires at least https://gitlab.com/ubports/development/core/repowerd/-/merge_requests/74 but I don't know if that'll get merged).
+Optionally network power saving can be enabled, which only allows internet to be on for 30 seconds every 9 and a half minutes when screen is off. It can detect whether hotspot is on reliably, and with https://gitlab.com/ubports/development/core/repowerd/-/merge_requests/74 merged it can detect whether any app is instructing the device to stay awake. However bringing down cellular networking on nm has a tiny chance to confuse lomiri network indicator, so until that is sorted out this feature is more for testing.
 
 To enable network power saving, create an empty file at `/home/phablet/.config/network_power_saving`, one can do that in terminal with `touch /home/phablet/.config/network_power_saving`. The change is applied the next screen off.
 

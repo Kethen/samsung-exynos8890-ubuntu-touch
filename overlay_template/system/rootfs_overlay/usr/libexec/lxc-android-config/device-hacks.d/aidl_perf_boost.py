@@ -37,7 +37,7 @@ power_saving_toggle_file = "/home/phablet/.config/power_saving"
 network_power_saving_toggle_file = "/home/phablet/.config/network_power_saving"
 
 network_power_saving_online_time_sec = 30
-network_power_saving_offline_time_sec = 270
+network_power_saving_offline_time_sec = 570
 
 log_file_path = "/home/phablet/.cache/aidl_perf_boost_log"
 log_file = open(log_file_path, "w")
