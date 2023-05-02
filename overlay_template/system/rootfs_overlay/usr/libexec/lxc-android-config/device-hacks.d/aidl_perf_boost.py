@@ -6,7 +6,7 @@ import subprocess
 import gbinder
 import time
 
-import nm_wifi_cellular as nm
+import lin
 import repowerd
 import lsc
 
@@ -97,17 +97,17 @@ sleep_till = None
 
 def disable_network():
 	log_nmcli()
-	nm.toggle_wifi(False)
-	nm.toggle_cellular_data(False)
+	lin.toggle_wifi(False)
+	lin.toggle_cellular_data(False)
 
 def restore_network_state():
 	log_nmcli()
 	if network_state is None:
 		return
 	if network_state["wifi"]:
-		nm.toggle_wifi(True)
+		lin.toggle_wifi(True)
 	if network_state["cellular"]:
-		nm.toggle_cellular_data(True)
+		lin.toggle_cellular_data(True)
 
 def network_power_saving_wakeup_cb():
 	global wake_cookie
@@ -154,10 +154,9 @@ def start_network_power_saving():
 	global wake_cookie
 	if wake_cookie is not None:
 		repowerd.clearWakeup(wake_cookie)
-	if nm.is_hotspot_mode():
-		log("not entering network powersaving with active wifi hotspot")
-		return
-	network_state = {"wifi": nm.is_wifi_on(), "cellular": nm.is_cellular_data_on()}
+	# don't need to check for hotspot here anymore, since hotspot holds wakelock
+
+	network_state = {"wifi": lin.is_wifi_on(), "cellular": lin.is_cellular_data_on()}
 	if (not network_state["wifi"]) and (not network_state["cellular"]):
 		log("not entering network powersaving since networking is already off")
 		network_state = None
@@ -266,7 +265,7 @@ log("binder is ready")
 DBusGMainLoop(set_as_default=True)
 bus = dbus.SystemBus()
 log("initializing nm dbus")
-nm.init(bus, log, "wlan0")
+lin.init(dbus.SessionBus(), log)
 log("initializing repowerd dbus")
 repowerd.register_wakeup_cb(network_power_saving_wakeup_cb)
 repowerd.init(bus, log)
