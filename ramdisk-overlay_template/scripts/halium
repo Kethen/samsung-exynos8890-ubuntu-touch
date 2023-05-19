@@ -573,33 +573,12 @@ mountroot() {
 		mount -o "$_syspart_options" $_syspart /halium-system
 	fi
 
-	# detect update
-	UPDATED=true
-	if [ -e /tmpmnt/last_ut_version ] && [ -e /halium-system/etc/ubuntu-build ]
-	then
-		if [ "$(cat /tmpmnt/last_ut_version)" == "$(cat /halium-system/etc/ubuntu-build)" ]
-		then
-			UPDATED=false
-		fi
-	fi
-
-	if $UPDATED
-	then
-		if [ -e /halium-system/etc/ubuntu-build ]
-		then
-			cp /halium-system/etc/ubuntu-build /tmpmnt/last_ut_version
-		else
-			echo 0 > /halium-system/etc/ubuntu-build
-			echo 0 > /tmpmnt/last_ut_version
-		fi
-	fi
-
 	# first boot modifications for herolte
 	MODEL=$(cat /model)
-	if $UPDATED
+	mount -o loop,rw /halium-system/var/lib/lxc/android/android-rootfs.img /halium-system
+	if ! [ -e /halium-system/.init_done ]
 	then
 		# create samsung mountpoints in android image, and name the device
-		mount -o loop,rw /halium-system/var/lib/lxc/android/android-rootfs.img /halium-system
 		mkdir /halium-system/efs
 		mkdir /halium-system/cpefs
 		sed -i "s/halium_arm64/${MODEL}/g" /halium-system/system/build.prop
@@ -609,15 +588,20 @@ mountroot() {
 		# charger mode init
 		mkdir /halium-system/sbin
 		ln -s /system/bin/init /halium-system/sbin/init
+
+		touch /halium-system/.init_done
 		umount /halium-system
+
+		# create symlinks
 		ln -s /android/efs /halium-system/efs
 		ln -s /android/cpefs /halium-system/cpefs
 		ln -s /android/vendor/etc/wifi /halium-system/etc/wifi
-
-		# refresh ldconfig for temporary overlays
-		#LD_LIBRARY_PATH=/lib:/usr/lib chroot /halium-system /sbin/ldconfig
-
+	else
+		umount /halium-system
 	fi
+
+	# refresh ldconfig for temporary overlays
+	#LD_LIBRARY_PATH=/lib:/usr/lib chroot /halium-system /sbin/ldconfig
 
 	# Identify image mode: either "rootfs" or "system"
 	mkdir -p /android-rootfs
@@ -640,13 +624,6 @@ mountroot() {
 	else
 		# Neither of those exist, remount read-only
 		tell_kmsg "mounting $_syspart $imagefile (user mode)"
-		if $UPDATED
-		then
-			# sadly apparmor does not play well with overlayfs, without modifying existing ut policies
-			# so no readonly overlay for rootfs_overlay, nor persistent overlay on userdata for those who like to go onto apt install adventures
-			# hopefully this plays well with OTA by still containing all boot.tar changes within rootfs_overlay, and makes sure rootfs_overlay is always on top
-			cp -r /halium-system/rootfs_overlay/. /halium-system/
-		fi
 		mount -o remount,ro /halium-system
 		mountroot_status="$?"
 	fi
@@ -765,6 +742,27 @@ mountroot() {
 		# make fstab empty since mounting is done for lpm
 		mount -o bind /dev/null ${rootmnt}/android/vendor/etc/fstab.samsungexynos8890
 		mount -o bind /dev/null ${rootmnt}/android/vendor/etc/fstab.samsungexynos8890.sd
+
+		# disable configfs
+		mount -o bind /dev/null ${rootmnt}/usr/lib/systemd/system/sys-kernel-config.mount
+
+		# early boot scripts
+		mount -o bind ${rootmnt}/opt/rootfs-overlay/usr/libexec/lxc-android-config/mount-android-partitions ${rootmnt}/usr/libexec/lxc-android-config/mount-android-partitions
+		mount -o bind ${rootmnt}/opt/rootfs-overlay/usr/libexec/lxc-android-config/mount-halium-overlay ${rootmnt}/usr/libexec/lxc-android-config/mount-halium-overlay
+
+		# udev rules override
+		mount -o bind ${rootmnt}/opt/rootfs-overlay/usr/lib/udev/rules.d/70-uaccess.rules ${rootmnt}/usr/lib/udev/rules.d/70-uaccess.rules
+
+		# just do systemd unit overlaying here, to do it after systemd has started is pain
+		for f in bluebinder.service bluetooth-touch.service hfd-service.service lomiri-location-service.service poweroff.target reboot.target repowerd.service
+		do
+			mount -o bind ${rootmnt}/opt/rootfs-overlay/usr/lib/systemd/system/$f ${rootmnt}/usr/lib/systemd/system/$f
+		done
+		for f in bluebinder.service bluetooth-touch.service zram-touch.service
+		do
+			mount -o bind /dev/null ${rootmnt}/usr/lib/systemd/system/$f
+		done
+		mount -o bind ${rootmnt}/opt/rootfs-overlay/usr/lib/systemd/user/pulseaudio.service ${rootmnt}/usr/lib/systemd/user/pulseaudio.service
 
 		# disable rfkill restoration for bluetooth, keep bt down as driver does and let hciattach manager handle restoration
 		# systemd-rfkill and urfkill...

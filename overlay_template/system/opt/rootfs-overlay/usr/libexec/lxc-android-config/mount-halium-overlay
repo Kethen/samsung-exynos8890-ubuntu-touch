@@ -1,6 +1,8 @@
 #!/bin/dash -eu
 
 # a list of items to mount is available at /usr/libexec/lxc-android-config/device-hacks.d/pre_lxc_mounts.sh
+
+# continue using this mechanism to maintain OTA compatibility
 exit 0
 
 # Copyright (C) 2013 Canonical LTD.

@@ -1,3 +1,5 @@
+# mounts for lxc
+
 # no tmpfs was mounted on /mnt for the fstab it found on this port
 mount -t tmpfs android_mnt /var/lib/lxc/android/rootfs/mnt
 
@@ -72,8 +74,25 @@ chmod 644 /home/phablet/.config/powerhint.json
 chown root: /home/phablet/.config/powerhint.json
 mount -o bind,ro /home/phablet/.config/powerhint.json /vendor/etc/powerhint.json
 
+# mounts for rootfs
 # hide extra power_supply sysfs nodes that present themselves as batteries
 mount -o ro -t tmpfs tmpfs /sys/class/power_supply/max77854-fuelgauge
 mount -o ro -t tmpfs tmpfs /sys/class/power_supply/p9220-charger
+
+mount -o bind /opt/rootfs-overlay/etc/default/usb-moded.d/device-specific-config.conf /etc/default/usb-moded.d/device-specific-config.conf
+mount -o bind /opt/rootfs-overlay/etc/gbinder.conf /etc/gbinder.conf
+mount -o bind /opt/rootfs-overlay/etc/profile.d/qtwebengine-gpu.sh /etc/profile.d/qtwebengine-gpu.sh
+mount -o bind /opt/rootfs-overlay/etc/pulse/touch.pa /etc/pulse/touch.pa
+
+mount -o bind /opt/rootfs-overlay/usr/lib/aarch64-linux-gnu/qt5/qml/Morph/Web/scrollbar-theme.js /usr/lib/aarch64-linux-gnu/qt5/qml/Morph/Web/scrollbar-theme.js
+
+for f in libdroid-sink-30.so  libdroid-source-30.so  libdroid-util-30.so  module-droid-card-30.so  module-droid-sink-30.so  module-droid-source-30.so
+do
+	mount -o bind /opt/rootfs-overlay/usr/lib/pulse-13.99.1/modules/$f /usr/lib/pulse-13.99.1/modules/$f
+done
+
+mount -o bind /opt/rootfs-overlay/usr/libexec/lxc-android-config/device-hacks /usr/libexec/lxc-android-config/device-hacks
+
+mount -o bind /opt/rootfs-overlay/usr/sbin/NetworkManager /usr/sbin/NetworkManager
 
 echo === pre_lxc_mounts.sh has finished === > /dev/kmsg
