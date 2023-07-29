@@ -93,6 +93,4 @@ done
 
 mount -o bind /opt/rootfs-overlay/usr/libexec/lxc-android-config/device-hacks /usr/libexec/lxc-android-config/device-hacks
 
-mount -o bind /opt/rootfs-overlay/usr/sbin/NetworkManager /usr/sbin/NetworkManager
-
 echo === pre_lxc_mounts.sh has finished === > /dev/kmsg

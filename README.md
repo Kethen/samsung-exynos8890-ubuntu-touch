@@ -15,7 +15,6 @@ https://github.com/00p513-dev
 
 ### Pending merge requests
 - audio routing on focal https://gitlab.com/ubports/development/core/packaging/pulseaudio-modules-droid/-/merge_requests/4
-- network manager WPA-PSK-SHA256 workaround https://gitlab.com/ubports/development/core/packaging/network-manager/-/merge_requests/9
 
 ### Currently Known Issues
 - focal hotspot toggle is currently in a finicky state, but nmcli/nmtui is working
@@ -33,6 +32,7 @@ https://github.com/00p513-dev
 - fingetprint sensor should work, but only tested on /dev/vfsspi(viper), not /dev/esfp0(egis), I don't have a s7 with egis fingerprint sensor to test with
 
 ### Merge requests that were merged
+- network manager WPA-PSK-SHA256 workaround https://gitlab.com/ubports/development/core/packaging/network-manager/-/merge_requests/9
 - focal hwc screen size issue https://gitlab.com/ubports/development/core/hybris-support/mir-android2-platform/-/merge_requests/11
 - Color/Pixel format for hardware video decoding https://github.com/ubports/gst-plugins-bad-packaging/pull/4
 - halium-generic-adaptation-build-tools https://gitlab.com/ubports/porting/community-ports/halium-generic-adaptation-build-tools/-/merge_requests/2
