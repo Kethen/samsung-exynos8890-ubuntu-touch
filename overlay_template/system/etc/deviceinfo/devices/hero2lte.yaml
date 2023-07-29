@@ -4,3 +4,9 @@ hero2lte:
   DoubleTapToWake:
     - /sys/class/sec/tsp/cmd_ut_aod_enable|1|0
     - /sys/class/sec/tsp/cmd_ut_set_aod_rect|1440x2560|0x0
+  GridUnit: 31
+  PrimaryOrientation: Portrait
+  SupportedOrientations:
+    - Portrait
+    - Landscape
+    - InvertedLandscape
