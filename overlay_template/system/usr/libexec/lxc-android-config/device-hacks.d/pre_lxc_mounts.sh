@@ -86,11 +86,6 @@ mount -o bind /opt/rootfs-overlay/etc/pulse/touch.pa /etc/pulse/touch.pa
 
 mount -o bind /opt/rootfs-overlay/usr/lib/aarch64-linux-gnu/qt5/qml/Morph/Web/scrollbar-theme.js /usr/lib/aarch64-linux-gnu/qt5/qml/Morph/Web/scrollbar-theme.js
 
-for f in libdroid-sink-30.so  libdroid-source-30.so  libdroid-util-30.so  module-droid-card-30.so  module-droid-sink-30.so  module-droid-source-30.so
-do
-	mount -o bind /opt/rootfs-overlay/usr/lib/pulse-13.99.1/modules/$f /usr/lib/pulse-13.99.1/modules/$f
-done
-
 mount -o bind /opt/rootfs-overlay/usr/libexec/lxc-android-config/device-hacks /usr/libexec/lxc-android-config/device-hacks
 
 echo === pre_lxc_mounts.sh has finished === > /dev/kmsg

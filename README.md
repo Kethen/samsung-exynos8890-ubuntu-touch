@@ -13,9 +13,6 @@ https://github.com/ExpressLuke
 
 https://github.com/00p513-dev
 
-### Pending merge requests
-- audio routing on focal https://gitlab.com/ubports/development/core/packaging/pulseaudio-modules-droid/-/merge_requests/4
-
 ### Currently Known Issues
 - focal hotspot toggle is currently in a finicky state, but nmcli/nmtui is working
 - starting ap mode (hotspot) after using WPA-PSK-SHA256 in sta mode, or just starting ap mode (hotspot) with WPA-PSK-SHA256, the wifi chip gets into a very inconsistent state until a reboot (broken ap beacons, broken scanning)
@@ -32,6 +29,7 @@ https://github.com/00p513-dev
 - fingetprint sensor should work, but only tested on /dev/vfsspi(viper), not /dev/esfp0(egis), I don't have a s7 with egis fingerprint sensor to test with
 
 ### Merge requests that were merged
+- audio routing on focal https://gitlab.com/ubports/development/core/packaging/pulseaudio-modules-droid/-/merge_requests/4
 - network manager WPA-PSK-SHA256 workaround https://gitlab.com/ubports/development/core/packaging/network-manager/-/merge_requests/9
 - focal hwc screen size issue https://gitlab.com/ubports/development/core/hybris-support/mir-android2-platform/-/merge_requests/11
 - Color/Pixel format for hardware video decoding https://github.com/ubports/gst-plugins-bad-packaging/pull/4
