@@ -1,0 +1,7 @@
+[Unit]
+Description=mini usbmoded, implements enough interfaces for ut and works better for legacy devices
+
+[Service]
+Environment="PYTHONUNBUFFERED=1"
+Restart=always
+ExecStart=/usr/libexec/lxc-android-config/device-hacks.d/mini_usbmoded.py

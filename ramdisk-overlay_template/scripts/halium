@@ -746,6 +746,10 @@ mountroot() {
 		# disable configfs
 		mount -o bind /dev/null ${rootmnt}/usr/lib/systemd/system/sys-kernel-config.mount
 
+		# disabe usb-moded
+		mount -o bind /dev/null ${rootmnt}/usr/lib/systemd/system/usb-moded.service
+		mount -o bind /dev/null ${rootmnt}/usr/lib/systemd/system/adbd-prepare.service
+
 		# early boot scripts
 		mount -o bind ${rootmnt}/opt/rootfs-overlay/usr/libexec/lxc-android-config/mount-android-partitions ${rootmnt}/usr/libexec/lxc-android-config/mount-android-partitions
 		mount -o bind ${rootmnt}/opt/rootfs-overlay/usr/libexec/lxc-android-config/mount-halium-overlay ${rootmnt}/usr/libexec/lxc-android-config/mount-halium-overlay
