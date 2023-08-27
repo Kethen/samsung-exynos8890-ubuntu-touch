@@ -585,6 +585,10 @@ mountroot() {
 		sed -i "s/halium_arm64/${MODEL}/g" /halium-system/system/system_ext/build.prop
 		sed -i "s/halium_arm64/${MODEL}/g" /halium-system/system/product/build.prop
 
+		sed -i "s/Generic Device/${MODEL}/g" /halium-system/system/build.prop
+		sed -i "s/Generic Device/${MODEL}/g" /halium-system/system/system_ext/build.prop
+		sed -i "s/Generic Device/${MODEL}/g" /halium-system/system/product/build.prop
+
 		# charger mode init
 		mkdir /halium-system/sbin
 		ln -s /system/bin/init /halium-system/sbin/init
