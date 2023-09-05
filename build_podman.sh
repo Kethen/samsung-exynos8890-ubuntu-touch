@@ -52,5 +52,6 @@ done
 ln -sf python2.7 /usr/bin/python
 bash ./prepare_overlays.sh $TARGET
 bash ./build.sh -b build_dir
-bash ./deploy.sh $TARGET
+#bash ./deploy.sh $TARGET
+bash ./deploy_opensuse.sh $TARGET
 "
