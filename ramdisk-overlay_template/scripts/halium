@@ -758,6 +758,9 @@ mountroot() {
 		mount -o bind ${rootmnt}/opt/rootfs-overlay/usr/libexec/lxc-android-config/mount-android-partitions ${rootmnt}/usr/libexec/lxc-android-config/mount-android-partitions
 		mount -o bind ${rootmnt}/opt/rootfs-overlay/usr/libexec/lxc-android-config/mount-halium-overlay ${rootmnt}/usr/libexec/lxc-android-config/mount-halium-overlay
 
+		# opensuse early boot scripts
+		mount -o bind ${rootmnt}/opt/rootfs-overlay/usr/lib/lxc-android/mount-android ${rootmnt}/usr/lib/lxc-android/mount-android
+
 		# udev rules override
 		mount -o bind ${rootmnt}/opt/rootfs-overlay/usr/lib/udev/rules.d/70-uaccess.rules ${rootmnt}/usr/lib/udev/rules.d/70-uaccess.rules
 
@@ -841,6 +844,9 @@ mountroot() {
 			#cat /sys/class/power_supply/battery/store_mode > ${rootmnt}/userdata/store_mode
 			#cat /sys/module/sec_battery/parameters/store_mode_max > ${rootmnt}/userdata/store_mode_max
 		fi
+
+		mount > ${rootmnt}/userdata/wdf_mount_logs
+		sync
 
 		# charger mode
 		if $IS_CHARGER_MODE

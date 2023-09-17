@@ -59,6 +59,15 @@ mount $loopdev build_dir/opensuse_mnt
 	rm -rf extract
 )
 
+mkdir -p build_dir/opensuse_extract
+tar -C build_dir/opensuse_extract --wildcards -xf out/device_"$deviceinfo_codename".tar.xz "partitions/*"
+for f in $(ls build_dir/opensuse_extract/partitions)
+do
+	cp build_dir/opensuse_extract/partitions/$f out/opensuse_${deviceinfo_codename}_${f}
+done
+rm -rf build_dir/opensuse_extract
+
 umount build_dir/opensuse_mnt
 losetup -d $loopdev
 mv build_dir/opensuse.img out/opensuse_rootfs_"$deviceinfo_codename".img
+
