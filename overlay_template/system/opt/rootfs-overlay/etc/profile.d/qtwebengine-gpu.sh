@@ -1,18 +1,28 @@
 #!/bin/sh
-# This file was part of lxc-android-config, overriden here
-# gpu rasterization seems very usable on this device
+# This file is part of lxc-android-config
 
-# leaving viz disabled according to https://github.com/ubports/lxc-android-config/commit/bf7c2dc380543dc9369f1ce8bb4b478729727636
+# Set some baseline performance optimizations
+GPU_FEATURES="--enable-gpu-rasterization"
 
-export QTWEBENGINE_CHROMIUM_FLAGS="--enable-gpu-rasterization --enable-zero-copy --disable-viz-display-compositor"
+# No default multimedia capabilities by default
+MEDIA_FEATURES=""
 
-# uncomment this to just use zero copy instead, which gives a big boost to scrolling framerate as well
-#export QTWEBENGINE_CHROMIUM_FLAGS="--enable-zero-copy --disable-viz-display-compositor"
+if [ -f /system/build.prop ]; then
+    # Conditionally disable GPU compositing for QtWebEngine on unsupported devices
+    DISABLE_GPU_PROP=$(device-info get QtWebEngineNoGpuCompositing)
+    if [ "$DISABLE_GPU_PROP" = "true" ]; then
+        GPU_FEATURES="${GPU_FEATURES} --disable-gpu-compositing"
+    fi
 
-# enable OverlayScrollbar
-#export QTWEBENGINE_CHROMIUM_FLAGS="$QTWEBENGINE_CHROMIUM_FLAGS --enable-features=OverlayScrollbar"
+    # Conditionally enable OMX video decoding capabilities using Mojo
+    DISABLE_ACCEL_VIDEO_DECODE_PROP=$(device-info get QtWebEngineNoAccelVideoDecoding)
+    if [ "$DISABLE_ACCEL_VIDEO_DECODE_PROP" != "true" ]; then
+        # OverlayScrollbar feature has to be enabled here as well,
+        # since only one instance of --enable-features is parsed currently
+        MEDIA_FEATURES="--enable-accelerated-video-decode --enable-features=MojoVideoDecoder,OverlayScrollbar"
+    else
+        MEDIA_FEATURES="--enable-features=OverlayScrollbar"
+    fi
+fi
 
-# multiple definition of --enable-features broke, enable OverlayScrollbar here as well
-# enable hardware video decoding
-export QTWEBENGINE_CHROMIUM_FLAGS="$QTWEBENGINE_CHROMIUM_FLAGS --enable-accelerated-video-decode --enable-features=MojoVideoDecoder,OverlayScrollbar"
-
+export QTWEBENGINE_CHROMIUM_FLAGS="$GPU_FEATURES $MEDIA_FEATURES"

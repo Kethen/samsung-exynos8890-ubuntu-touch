@@ -84,7 +84,8 @@ mount -o bind /opt/rootfs-overlay/etc/gbinder.conf /etc/gbinder.conf
 mount -o bind /opt/rootfs-overlay/etc/profile.d/qtwebengine-gpu.sh /etc/profile.d/qtwebengine-gpu.sh
 mount -o bind /opt/rootfs-overlay/etc/pulse/touch.pa /etc/pulse/touch.pa
 
-mount -o bind /opt/rootfs-overlay/usr/lib/aarch64-linux-gnu/qt5/qml/Morph/Web/scrollbar-theme.js /usr/lib/aarch64-linux-gnu/qt5/qml/Morph/Web/scrollbar-theme.js
+mount -o bind /dev/null /usr/lib/aarch64-linux-gnu/qt5/qml/Morph/Web/scrollbar-theme.js
+mount -o bind /opt/rootfs-overlay/usr/lib/aarch64-linux-gnu/qt5/qml/Morph/Web/MorphWebContext.qml /usr/lib/aarch64-linux-gnu/qt5/qml/Morph/Web/MorphWebContext.qml
 
 mount -o bind /opt/rootfs-overlay/usr/libexec/lxc-android-config/device-hacks /usr/libexec/lxc-android-config/device-hacks
 
